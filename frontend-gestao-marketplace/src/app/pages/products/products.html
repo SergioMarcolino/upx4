@@ -1,0 +1,92 @@
+<div class="p-4 md:p-8 bg-gray-50 min-h-screen">
+  <div class="max-w-7xl mx-auto">
+    
+    <div class="mb-8">
+      <h1 class="text-4xl font-bold text-slate-900 mb-2">Lista de Produtos</h1>
+      <p class="text-slate-600">Gerencie seu estoque de produtos e visualize métricas financeiras.</p>
+    </div>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      
+      @if (isLoading) {
+        <p class="col-span-full text-center text-slate-500 py-12">Carregando produtos...</p>
+      }
+
+      @for (product of (products$ | async); track product.id) {
+        <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100 transition-transform hover:shadow-xl">
+          
+          <div class="flex justify-between items-start mb-4">
+            <div class="flex-1">
+              <h3 class="text-lg font-bold text-slate-900 flex items-center">
+                <img class="w-5 h-5 mr-2" src="check-shield.svg" alt="Status" />
+                {{ product.title }}
+              </h3>
+              <p class="text-sm text-slate-500 mt-1">Fornecedor: {{ product.supplier }}</p>
+            </div>
+            
+            <div class="flex gap-2">
+              <button
+                (click)="handleEdit(product)"
+                class="p-1 cursor-pointer rounded-full hover:bg-blue-50 text-blue-600"
+              >
+                <img class="w-4 h-4" src="pencil.svg" alt="Editar" />
+              </button>
+              <button
+                (click)="handleDelete(product.id)"
+                class="p-1 cursor-pointer rounded-full hover:bg-red-50 text-red-600"
+              >
+                <img class="w-4 h-4" src="trash-2.svg" alt="Excluir" />
+              </button>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-4 border-t border-b border-gray-100 py-4 mb-4">
+            
+            <div class="bg-gray-50 p-3 rounded-lg">
+              <p class="text-xs text-slate-500">Valor Compra</p>
+              <p class="font-bold text-lg text-slate-900 mt-1">R$ {{ product.purchase_price | number:'1.2-2' }}</p>
+            </div>
+            
+            <div class="bg-green-50 p-3 rounded-lg">
+              <p class="text-xs text-green-700">Valor Venda</p>
+              <p class="font-bold text-lg text-green-600 mt-1">R$ {{ product.sale_price | number:'1.2-2' }}</p>
+            </div>
+            
+          </div>
+
+          <div class="flex justify-between items-center text-sm">
+            
+            <div>
+              <p 
+                [ngClass]="{
+                  'text-emerald-600': product.quantity > 10,
+                  'text-orange-600': product.quantity > 0 && product.quantity <= 10,
+                  'text-red-600': product.quantity === 0
+                }"
+                class="font-semibold"
+              >
+                Estoque: {{ product.quantity }} unid.
+              </p>
+              <p class="text-gray-500 text-xs mt-1">{{ formatDate(product.date) }}</p>
+            </div>
+            
+            <div class="text-right">
+              <p class="text-sm text-slate-500">Margem de lucro</p>
+              <p class="font-bold text-xl text-purple-600 mt-1">{{ calculateMargin(product.sale_price, product.purchase_price) }}</p>
+            </div>
+          </div>
+
+        </div>
+      } @empty {
+        @if (!isLoading) {
+          <div class="col-span-full text-center py-12">
+            <img class="w-16 h-16 text-slate-300 mx-auto mb-4" src="package-empty.svg" alt="Sem Produtos" />
+            <h3 class="text-xl font-semibold text-slate-900 mb-2">Nenhum produto cadastrado</h3>
+            <p class="text-slate-600">Comece adicionando seu primeiro produto</p>
+          </div>
+        }
+      }
+    </div>
+  </div>
+  
+  </div>

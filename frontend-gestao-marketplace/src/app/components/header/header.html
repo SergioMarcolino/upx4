@@ -1,0 +1,43 @@
+<div class="w-full flex justify-between items-center p-4 border-b border-gray-100 shadow-sm bg-white fixed top-0 left-0 z-10">
+  
+  <div class="flex items-center">
+    <img class="w-8 h-8 mr-2" src="logo.svg" alt="Fluxa Logo" />
+    <span class="text-xl font-bold text-gray-800">Fluxa</span>
+  </div>
+
+  <div class="flex items-center space-x-4">
+    
+    <a 
+      routerLink="/products" 
+      routerLinkActive="bg-blue-50 text-blue-700 border-blue-500"
+      [routerLinkActiveOptions]="{exact: true}"
+      class="flex items-center p-2 rounded-lg border-b-2 border-transparent text-gray-600 hover:bg-gray-50 transition duration-150 ease-in-out cursor-pointer"
+    >
+      <img class="mr-2 w-4 h-4 text-blue-500" src="package.svg" />
+      <span class="text-sm font-medium">Produtos</span>
+    </a>
+
+    <a 
+      routerLink="/dashboard" 
+      routerLinkActive="bg-blue-50 text-blue-700 border-blue-500"
+      class="flex items-center p-2 rounded-lg border-b-2 border-transparent text-gray-600 hover:bg-gray-50 transition duration-150 ease-in-out cursor-pointer"
+    >
+      <img class="mr-2 w-4 h-4 text-gray-500" src="chart.svg" />
+      <span class="text-sm font-medium">Dashboard</span>
+    </a>
+  </div>
+
+  <div class="flex items-center">
+    <a 
+      routerLink="/new-product" 
+      class="flex items-center px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition duration-200 shadow-md mr-4 cursor-pointer"
+    >
+      <img class="mr-2 w-4 h-4 filter brightness-0 invert" src="plus-sign.svg" />
+      <span class="text-sm">Novo Produto</span>
+    </a>
+
+    <div class="flex items-center space-x-2 cursor-pointer">
+      <img class="w-8 h-8 rounded-full border border-gray-300" src="user-avatar.svg" alt="User Avatar" />
+      </div>
+  </div>
+</div>
