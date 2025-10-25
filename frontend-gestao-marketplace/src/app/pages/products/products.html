@@ -1,67 +1,74 @@
 <div class="p-4 md:p-8 bg-gray-50 min-h-screen">
   <div class="max-w-7xl mx-auto">
-    
+
     <div class="mb-8">
       <h1 class="text-4xl font-bold text-slate-900 mb-2">Lista de Produtos</h1>
       <p class="text-slate-600">Gerencie seu estoque de produtos e visualize métricas financeiras.</p>
     </div>
 
     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-      
-      @if (isLoading) {
-        <p class="col-span-full text-center text-slate-500 py-12">Carregando produtos...</p>
+
+      @if (isLoading && !(products$ | async)?.length) { <p class="col-span-full text-center text-slate-500 py-12">Carregando produtos...</p>
       }
 
       @for (product of (products$ | async); track product.id) {
-        <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100 transition-transform hover:shadow-xl">
-          
-          <div class="flex justify-between items-start mb-4">
-            <div class="flex-1">
-              <h3 class="text-lg font-bold text-slate-900 flex items-center">
-                <img class="w-5 h-5 mr-2" src="check-shield.svg" alt="Status" />
-                {{ product.title }}
-              </h3>
-              <p class="text-sm text-slate-500 mt-1">Fornecedor: {{ product.supplier }}</p>
+        <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100 transition-all duration-200 ease-in-out hover:shadow-xl hover:scale-[1.01] flex flex-col justify-between">
+
+          <div>
+            <div class="flex justify-between items-start mb-4">
+              <div class="flex-1 mr-2">
+                <h3 class="text-lg font-bold text-slate-900 flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-2 text-green-500 shrink-0">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.956-.37 3.831-1.07 5.513M3 12c0-1.956.37-3.831 1.07-5.513M12 3c-1.956 0-3.831.37-5.513 1.07M12 21c1.956 0 3.831-.37 5.513-1.07M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
+                  </svg>
+                  {{ product.title }}
+                </h3>
+                <p class="text-sm text-slate-500 mt-1 truncate">
+                  Fornecedor: {{ getSupplierName(product.supplierId) }}
+                </p>
+              </div>
+
+              <div class="flex gap-1 shrink-0">
+                <button
+                  title="Editar Produto"
+                  (click)="handleEdit(product)"
+                  class="p-2 cursor-pointer rounded-full hover:bg-blue-100 text-blue-600 transition-colors duration-200 ease-in-out"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+                  </svg>
+                </button>
+                <button
+                  title="Excluir Produto"
+                  (click)="handleDelete(product.id)"
+                  class="p-2 cursor-pointer rounded-full hover:bg-red-100 text-red-600 transition-colors duration-200 ease-in-out"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.927a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m-1.022.165L5.79 19.673a2.25 2.25 0 0 0 2.244 2.077h8.114a2.25 2.25 0 0 0 2.244-2.077L19.58 5.79m-4.5 0H9.5" />
+                  </svg>
+                </button>
+              </div>
             </div>
-            
-            <div class="flex gap-2">
-              <button
-                (click)="handleEdit(product)"
-                class="p-1 cursor-pointer rounded-full hover:bg-blue-50 text-blue-600"
-              >
-                <img class="w-4 h-4" src="pencil.svg" alt="Editar" />
-              </button>
-              <button
-                (click)="handleDelete(product.id)"
-                class="p-1 cursor-pointer rounded-full hover:bg-red-50 text-red-600"
-              >
-                <img class="w-4 h-4" src="trash-2.svg" alt="Excluir" />
-              </button>
+
+            <div class="grid grid-cols-2 gap-4 border-t border-b border-gray-100 py-4 mb-4">
+              <div class="bg-gray-50 p-3 rounded-lg">
+                <p class="text-xs text-slate-500">Valor Compra</p>
+                <p class="font-bold text-lg text-slate-900 mt-1">R$ {{ product.purchase_price | number:'1.2-2' }}</p>
+              </div>
+              <div class="bg-green-50 p-3 rounded-lg">
+                <p class="text-xs text-green-700">Valor Venda</p>
+                <p class="font-bold text-lg text-green-600 mt-1">R$ {{ product.sale_price | number:'1.2-2' }}</p>
+              </div>
             </div>
-          </div>
-          
-          <div class="grid grid-cols-2 gap-4 border-t border-b border-gray-100 py-4 mb-4">
-            
-            <div class="bg-gray-50 p-3 rounded-lg">
-              <p class="text-xs text-slate-500">Valor Compra</p>
-              <p class="font-bold text-lg text-slate-900 mt-1">R$ {{ product.purchase_price | number:'1.2-2' }}</p>
-            </div>
-            
-            <div class="bg-green-50 p-3 rounded-lg">
-              <p class="text-xs text-green-700">Valor Venda</p>
-              <p class="font-bold text-lg text-green-600 mt-1">R$ {{ product.sale_price | number:'1.2-2' }}</p>
-            </div>
-            
           </div>
 
-          <div class="flex justify-between items-center text-sm">
-            
+          <div class="flex justify-between items-center text-sm mt-auto">
             <div>
-              <p 
+              <p
                 [ngClass]="{
                   'text-emerald-600': product.quantity > 10,
                   'text-orange-600': product.quantity > 0 && product.quantity <= 10,
-                  'text-red-600': product.quantity === 0
+                  'text-red-600': product.quantity <= 0
                 }"
                 class="font-semibold"
               >
@@ -69,9 +76,9 @@
               </p>
               <p class="text-gray-500 text-xs mt-1">{{ formatDate(product.date) }}</p>
             </div>
-            
+
             <div class="text-right">
-              <p class="text-sm text-slate-500">Margem de lucro</p>
+              <p class="text-sm text-slate-500">Margem</p>
               <p class="font-bold text-xl text-purple-600 mt-1">{{ calculateMargin(product.sale_price, product.purchase_price) }}</p>
             </div>
           </div>
@@ -80,13 +87,142 @@
       } @empty {
         @if (!isLoading) {
           <div class="col-span-full text-center py-12">
-            <img class="w-16 h-16 text-slate-300 mx-auto mb-4" src="package-empty.svg" alt="Sem Produtos" />
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-16 h-16 text-slate-300 mx-auto mb-4">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10.5 11.25H16.5m-6 3.75h6m-12-7.5h12" />
+            </svg>
             <h3 class="text-xl font-semibold text-slate-900 mb-2">Nenhum produto cadastrado</h3>
-            <p class="text-slate-600">Comece adicionando seu primeiro produto</p>
+            <p class="text-slate-600">Comece adicionando seu primeiro produto clicando em "Novo Produto".</p>
           </div>
         }
       }
+      </div> </div> </div> @if (showEditDialog && editingProduct) {
+  <div
+    class="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity duration-300 ease-out"
+    [class.opacity-100]="showEditDialog"
+    [class.opacity-0]="!showEditDialog"
+    (click)="handleCloseEdit()" >
+
+    <div
+      class="bg-white rounded-xl shadow-2xl p-6 md:p-8 border border-gray-100 w-full max-w-2xl transform transition-all duration-300 ease-out m-4"
+      [class.scale-100]="showEditDialog"
+      [class.scale-95]="!showEditDialog"
+      [class.opacity-100]="showEditDialog"
+      [class.opacity-0]="!showEditDialog"
+      (click)="$event.stopPropagation()" >
+
+      <div class="flex justify-between items-center border-b border-gray-100 pb-4 mb-6">
+        <h2 class="text-2xl font-semibold text-gray-900">Editar Produto</h2>
+        <button (click)="handleCloseEdit()" class="text-gray-400 hover:text-gray-600 text-3xl leading-none transition-colors duration-200 ease-in-out">&times;</button>
+      </div>
+
+      @if (editErrorMessage) {
+        <div class="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded-lg relative mb-6 text-sm" role="alert">
+          <span class="block sm:inline">{{ editErrorMessage }}</span>
+        </div>
+      }
+
+      <div class="flex flex-col gap-5 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
+
+        <div>
+          <label for="edit-title" class="block text-sm font-medium text-gray-700 mb-1">Nome do Produto</label>
+          <input id="edit-title" type="text" [(ngModel)]="editingProduct.title" name="editTitle"
+                 class="w-full border border-gray-300 rounded-lg p-3 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out placeholder-gray-400"/>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div>
+            <label for="edit-supplierId" class="block text-sm font-medium text-gray-700 mb-1">Fornecedor</label>
+            <select
+              id="edit-supplierId"
+              [(ngModel)]="editingProduct.supplierId"
+              name="editSupplierId"
+              class="w-full border border-gray-300 rounded-lg p-3 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white appearance-none transition-all duration-200 ease-in-out"
+            >
+              <option [ngValue]="null" disabled>Selecione</option>
+              @for(supplier of suppliers; track supplier.id) {
+                <option [ngValue]="supplier.id">{{ supplier.companyName }}</option>
+              } @empty {
+                <option [ngValue]="null" disabled>Carregando fornecedores...</option>
+              }
+            </select>
+             </div>
+          <div>
+            <label for="edit-category" class="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
+            <select id="edit-category" [(ngModel)]="editingProduct.category" name="editCategory"
+                    class="w-full border border-gray-300 rounded-lg p-3 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white appearance-none transition-all duration-200 ease-in-out">
+              <option value="" disabled>Selecione</option>
+              <option value="eletronicos">Eletrônicos</option>
+              <option value="movel">Móvel</option>
+              <option value="vestuario">Vestuário</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div>
+            <label for="edit-purchase_price" class="block text-sm font-medium text-gray-700 mb-1">Valor de Compra (R$)</label>
+            <input id="edit-purchase_price" type="number" step="0.01" [(ngModel)]="editingProduct.purchase_price" name="editPurchasePrice"
+                   class="w-full border border-gray-300 rounded-lg p-3 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out placeholder-gray-400"/>
+          </div>
+          <div>
+            <label for="edit-sale_price" class="block text-sm font-medium text-gray-700 mb-1">Valor de Venda (R$)</label>
+            <input id="edit-sale_price" type="number" step="0.01" [(ngModel)]="editingProduct.sale_price" name="editSalePrice"
+                   class="w-full border border-gray-300 rounded-lg p-3 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out placeholder-gray-400"/>
+          </div>
+        </div>
+
+        <div>
+          <label for="edit-description" class="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
+          <textarea id="edit-description" rows="3" [(ngModel)]="editingProduct.description" name="editDescription"
+                    class="w-full border border-gray-300 rounded-lg p-3 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out resize-none placeholder-gray-400"></textarea>
+        </div>
+
+        <div>
+          <label for="edit-status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <select id="edit-status" [(ngModel)]="editingProduct.status" name="editStatus"
+                    class="w-full border border-gray-300 rounded-lg p-3 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white appearance-none transition-all duration-200 ease-in-out">
+              <option value="anunciado">Anunciado</option>
+              <option value="vendido">Vendido</option>
+              <option value="desativado">Desativado</option>
+            </select>
+        </div>
+
+        <div>
+          <label for="edit-image" class="block text-sm font-medium text-gray-700 mb-1">Imagem (Base64)</label>
+          <textarea id="edit-image" rows="2" [(ngModel)]="editingProduct.imageBase64" name="editImageBase64"
+                    disabled
+                    class="w-full border border-gray-300 rounded-lg p-3 bg-gray-100 text-gray-500 resize-none text-xs cursor-not-allowed"></textarea>
+          <p class="text-xs text-gray-500 mt-1">Edição de imagem não disponível neste modal.</p>
+        </div>
+
+      </div>
+
+      <div class="flex gap-3 pt-6 border-t border-gray-100 mt-6">
+        <button
+          type="button"
+          (click)="handleCloseEdit()"
+          class="flex flex-1 justify-center p-3 rounded-lg border border-gray-300 text-gray-700 text-sm font-semibold hover:bg-gray-100 transition-colors duration-200 ease-in-out"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          (click)="handleSaveEdit()"
+          [disabled]="isLoading"
+          class="flex flex-1 justify-center items-center p-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-all duration-200 ease-in-out disabled:opacity-75 disabled:cursor-not-allowed"
+        >
+          @if (isLoading) {
+            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Salvando...
+          } @else {
+            Salvar Alterações
+          }
+        </button>
+      </div>
+
     </div>
   </div>
-  
-  </div>
+}

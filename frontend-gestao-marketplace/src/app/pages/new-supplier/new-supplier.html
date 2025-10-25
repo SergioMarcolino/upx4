@@ -1,0 +1,115 @@
+<div class="w-full py-7 px-4 sm:px-14 pt-20 bg-gray-50 min-h-screen">
+
+  <div class="max-w-4xl mx-auto">
+
+    <div class="mb-8">
+      <h1 class="text-3xl font-semibold text-gray-900">Adicionar Fornecedor</h1>
+      <p class="text-base text-gray-600 mt-1">Cadastre um novo fornecedor para seus produtos.</p>
+    </div>
+
+    <form [formGroup]="supplierForm" (ngSubmit)="onSubmit()" novalidate>
+
+      <div class="bg-white rounded-xl shadow-lg p-6 sm:p-8 border border-gray-100 flex flex-col gap-6">
+
+        <div class="flex items-center gap-3 border-b border-gray-100 pb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-blue-600">
+             <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M8.25 21h7.5M12 6.75h.008v.008H12V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 2.25h.008v.008H12v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 2.25h.008v.008H12v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 2.25h.008v.008H12V13.5Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 2.25h.008v.008H12v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+          </svg>
+          <h3 class="text-xl font-semibold text-gray-800">Dados do Fornecedor</h3>
+        </div>
+
+        @if (apiErrorMessage) {
+          <div class="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded-lg relative text-sm" role="alert">
+            <span class="block sm:inline">{{ apiErrorMessage }}</span>
+          </div>
+        }
+        @if (successMessage) {
+          <div class="bg-green-50 border border-green-300 text-green-700 px-4 py-3 rounded-lg relative text-sm" role="alert">
+            <span class="block sm:inline">{{ successMessage }}</span>
+          </div>
+        }
+
+        <div class="flex flex-col gap-5">
+
+          <div>
+            <label for="companyName" class="block text-sm font-medium text-gray-700 mb-1">Nome da Empresa (Fantasia)</label>
+            <input
+              id="companyName" type="text" formControlName="companyName" required
+              [class.border-red-500]="supplierForm.get('companyName')?.invalid && supplierForm.get('companyName')?.touched"
+              class="w-full border border-gray-300 rounded-lg p-3 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out placeholder-gray-400"
+              placeholder="Ex: Tech Distribuidor Ltda"
+            />
+            @if (supplierForm.get('companyName')?.hasError('required') && supplierForm.get('companyName')?.touched) {
+              <p class="text-xs text-red-600 mt-1">Nome da empresa é obrigatório.</p>
+            }
+             @if (supplierForm.get('companyName')?.hasError('minlength') && supplierForm.get('companyName')?.touched) {
+              <p class="text-xs text-red-600 mt-1">Nome deve ter pelo menos 3 caracteres.</p>
+            }
+          </div>
+
+          <div>
+            <label for="cnpj" class="block text-sm font-medium text-gray-700 mb-1">CNPJ</label>
+            <input
+              id="cnpj" type="text" formControlName="cnpj" required
+              placeholder="00.000.000/0000-00"
+              [class.border-red-500]="supplierForm.get('cnpj')?.invalid && supplierForm.get('cnpj')?.touched"
+              class="w-full border border-gray-300 rounded-lg p-3 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out placeholder-gray-400"
+              />
+             @if (supplierForm.get('cnpj')?.hasError('required') && supplierForm.get('cnpj')?.touched) {
+              <p class="text-xs text-red-600 mt-1">CNPJ é obrigatório.</p>
+            }
+             @if (supplierForm.get('cnpj')?.hasError('pattern') && supplierForm.get('cnpj')?.touched) {
+              <p class="text-xs text-red-600 mt-1">Formato de CNPJ inválido.</p>
+            }
+          </div>
+
+           <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div>
+              <label for="contactName" class="block text-sm font-medium text-gray-700 mb-1">Nome do Contato <span class="text-gray-400">(Opcional)</span></label>
+              <input
+                id="contactName" type="text" formControlName="contactName"
+                class="w-full border border-gray-300 rounded-lg p-3 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out placeholder-gray-400"
+                placeholder="Ex: João da Silva"
+              />
+            </div>
+
+            <div>
+              <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Telefone <span class="text-gray-400">(Opcional)</span></label>
+              <input
+                id="phone" type="text" formControlName="phone"
+                class="w-full border border-gray-300 rounded-lg p-3 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out placeholder-gray-400"
+                 placeholder="(00) 00000-0000"
+                 />
+            </div>
+          </div>
+
+
+        </div>
+
+        <div class="w-full flex gap-3 pt-6 border-t border-gray-100">
+          <button
+            type="button"
+            routerLink="/products" class="flex flex-1 justify-center p-3 rounded-lg border border-gray-300 text-gray-700 text-sm font-semibold hover:bg-gray-100 transition-colors duration-200 ease-in-out"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            [disabled]="supplierForm.invalid || isLoading"
+            class="flex flex-1 justify-center items-center p-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-all duration-200 ease-in-out disabled:opacity-75 disabled:cursor-not-allowed"
+          >
+            @if (isLoading) {
+              <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Salvando...
+            } @else {
+              Adicionar Fornecedor
+            }
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

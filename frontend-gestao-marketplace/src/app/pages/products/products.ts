@@ -1,92 +1,179 @@
-// src/app/pages/products/products.component.ts
+// Em src/app/pages/products/products.component.ts
 
-import { Component, inject, OnInit } from '@angular/core'; // 👈 Adicionado OnInit
-import { CommonModule } from '@angular/common';
-import { Router, RouterModule} from '@angular/router';
+import { Component, inject, OnInit, Renderer2 } from '@angular/core'; // Adicionado Renderer2
+import { CommonModule, NgClass, DatePipe, DecimalPipe } from '@angular/common'; 
+import { Router, RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms'; // FormsModule para o Modal
+
+// Seus serviços e interfaces
+import { ProductService } from '../../services/product'; 
 import { IProductResponse } from '../../interfaces/product-response'; 
-import { UserService } from '../../services/user'; 
-import { Observable, BehaviorSubject, switchMap, catchError, of, finalize } from 'rxjs';
-import { format } from 'date-fns';
+import { SupplierService } from '../../services/supplier'; // 👈 IMPORTAR SupplierService
+import { ISupplierResponse } from '../../interfaces/supplier-response'; // 👈 IMPORTAR ISupplierResponse
+
+import { Observable, BehaviorSubject, switchMap, catchError, of, finalize, tap } from 'rxjs'; // Importar tap
+import { format, parseISO } from 'date-fns'; 
 import { ptBR } from 'date-fns/locale';
-import { HttpErrorResponse } from '@angular/common/http'; // Adicionado para tipagem de erro
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-products',
   standalone: true,
-  imports: [CommonModule, RouterModule],
-  templateUrl: './products.html',
-  styleUrls: ['./products.css']
+  imports: [
+    CommonModule, 
+    RouterModule, 
+    NgClass, 
+    FormsModule, // Adicionar FormsModule aos imports para o Modal
+  ], 
+  providers: [ DatePipe, DecimalPipe ], 
+  templateUrl: './products.html', 
+  styleUrls: ['./products.css']   
 })
-// 👈 Implementa OnInit
 export class ProductsComponent implements OnInit { 
   
   // Injeções
-  private readonly _userService = inject(UserService);
-  private readonly _router = inject(Router);
+  private readonly productService = inject(ProductService); 
+  private readonly supplierService = inject(SupplierService); // 👈 INJETAR SupplierService
+  private readonly router = inject(Router);
+  private readonly renderer = inject(Renderer2); 
   
-  // Estado para forçar o refresh (simula queryClient.invalidateQueries)
-  private refreshProducts$ = new BehaviorSubject<void>(undefined); 
+  // Estado para forçar o refresh
+  private refreshTrigger$ = new BehaviorSubject<void>(undefined); 
   
-  // Observables para dados e estados (simula useQuery)
+  // Observables para dados e estados
   products$: Observable<IProductResponse[]>;
-  isLoading = true;
+  public suppliers: ISupplierResponse[] = []; // 👈 CRIAR ARRAY para guardar fornecedores
+  isLoading = true; 
   
   // Estado para Modais e Formulários
   showEditDialog = false;
   editingProduct: IProductResponse | null = null;
+  editErrorMessage: string | null = null; 
 
   constructor() {
-    this.products$ = this.refreshProducts$.pipe(
+    // 👇 MODIFICADO: Busca fornecedores PRIMEIRO, depois produtos
+    this.products$ = this.supplierService.listSuppliers().pipe(
+      tap(suppliers => this.suppliers = suppliers), // Armazena os fornecedores na propriedade 'suppliers'
+      switchMap(() => this.refreshTrigger$), // Dispara a busca de produtos
       switchMap(() => {
-        this.isLoading = true; // Inicia o loading
-        return this._userService.listProducts().pipe( 
-          catchError((err: HttpErrorResponse) => { // Tipagem do erro para debug
-            console.error('Falha ao carregar produtos. Verifique se o Express está rodando.', err);
+        this.isLoading = true; 
+        return this.productService.listProducts().pipe( 
+          catchError((err: HttpErrorResponse) => {
+            console.error('Falha ao carregar produtos.', err);
             return of([] as IProductResponse[]); 
           }),
-          finalize(() => this.isLoading = false) // Finaliza o loading
+          finalize(() => this.isLoading = false) 
+        );
+      }),
+      catchError((err: HttpErrorResponse) => { // Catch error do supplierService
+        console.error('Falha ao carregar fornecedores.', err);
+        // Tenta carregar produtos mesmo assim
+        this.isLoading = true; 
+         return this.productService.listProducts().pipe( 
+          catchError((prodErr: HttpErrorResponse) => {
+            console.error('Falha ao carregar produtos após erro de fornecedor.', prodErr);
+             return of([] as IProductResponse[]); 
+          }),
+          finalize(() => this.isLoading = false)
         );
       })
     );
   }
 
-  // 🎯 MÉTODO DE INICIALIZAÇÃO ONDE DISPARAMOS A REQUISIÇÃO
   ngOnInit(): void {
-    // Esta chamada força o BehaviorSubject a emitir o primeiro valor,
-    // o que dispara o switchMap e a chamada à API.
-    this.refreshProducts$.next(); 
+    // A inscrição no template já dispara o fluxo do constructor
   }
 
-  // Helper para formatar data
-  formatDate(dateStr: string): string {
-    // Garante que o objeto date-fns esteja instalado
+  // --- Funções Auxiliares de Formatação ---
+  
+  formatDate(dateStr: string | null | undefined): string {
+    if (!dateStr) return 'Data indisponível';
     try {
-        return format(new Date(dateStr), "dd 'de' MMM", { locale: ptBR });
+      const date = parseISO(dateStr); 
+      return format(date, "dd/MM/yyyy", { locale: ptBR });
     } catch (e) {
-        return dateStr; // Retorna a string original em caso de falha de formatação
+      console.error("Erro ao formatar data:", dateStr, e);
+      return 'Data inválida'; 
     }
   }
 
-  // Helper para calcular margem
-  calculateMargin(sale: number, purchase: number): string {
-    if (purchase === 0) return 'N/A';
-    return (((sale - purchase) / purchase) * 100).toFixed(1) + '%';
+  calculateMargin(sale: number | null | undefined, purchase: number | null | undefined): string {
+    if (purchase === null || purchase === undefined || purchase <= 0 || 
+        sale === null || sale === undefined || sale <= 0) {
+      return '- %';
+    }
+    try {
+      const margin = ((sale - purchase) / sale) * 100; 
+      return `${margin % 1 === 0 ? margin.toFixed(0) : margin.toFixed(1)}%`;
+    } catch (e) {
+      return '- %';
+    }
   }
 
-  // --- Mutações (Lógica de CRUD) ---
+  // 👇 ADICIONAR FUNÇÃO HELPER para pegar nome do fornecedor 👇
+  getSupplierName(supplierId: number | null | undefined): string {
+    if (supplierId === null || supplierId === undefined) return 'N/D';
+    // Usa a propriedade 'this.suppliers' que foi preenchida no constructor
+    const supplier = this.suppliers.find(s => s.id === supplierId); 
+    return supplier ? supplier.companyName : `ID ${supplierId} não encontrado`;
+  }
+
+  // --- Funções de CRUD (Ações dos Botões) ---
   
-  // Simula handleEdit
   handleEdit(product: IProductResponse): void {
-    this.editingProduct = product;
+    this.editingProduct = JSON.parse(JSON.stringify(product)); 
     this.showEditDialog = true;
+    this.editErrorMessage = null; 
+    this.renderer.addClass(document.body, 'modal-open'); 
   }
   
-  // Simula deleteMutation.mutate
+  handleSaveEdit(): void {
+    if (!this.editingProduct) return;
+
+    this.isLoading = true; 
+    this.editErrorMessage = null;
+    const productId = this.editingProduct.id; 
+
+    // Garante que supplierId seja número antes de enviar
+    if (this.editingProduct.supplierId && typeof this.editingProduct.supplierId === 'string') {
+        this.editingProduct.supplierId = parseInt(this.editingProduct.supplierId, 10);
+    }
+
+    this.productService.updateProduct(productId, this.editingProduct).subscribe({
+      next: (updatedProduct) => {
+        console.log('Produto atualizado:', updatedProduct);
+        this.handleCloseEdit(); 
+        this.refreshTrigger$.next(); // Recarrega a lista
+      },
+      error: (err: Error) => {
+        console.error('Erro ao atualizar produto:', err);
+        this.editErrorMessage = `Erro ao salvar: ${err.message}`; 
+        this.isLoading = false; 
+      }
+    });
+  }
+
+  handleCloseEdit(): void {
+    this.showEditDialog = false;
+    this.editingProduct = null;
+    this.editErrorMessage = null;
+    this.renderer.removeClass(document.body, 'modal-open'); 
+    if(this.isLoading) { this.isLoading = false; }
+  }
+  
   handleDelete(id: number): void {
-    if (confirm('Tem certeza que deseja excluir este produto?')) {
-      this._userService.deleteProduct(id).subscribe({
-        next: () => this.refreshProducts$.next(), // Recarrega a lista
-        error: (err) => console.error('Erro ao deletar:', err)
+    if (confirm('Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita.')) {
+      this.isLoading = true; 
+      this.productService.deleteProduct(id).subscribe({
+        next: (response) => {
+          console.log(response.message || 'Produto excluído com sucesso.');
+          this.refreshTrigger$.next(); // Recarrega a lista
+        },
+        error: (err: Error) => {
+          console.error('Erro ao deletar:', err);
+          alert(`Erro ao deletar: ${err.message}`); 
+          this.isLoading = false; 
+        }
       });
     }
   }

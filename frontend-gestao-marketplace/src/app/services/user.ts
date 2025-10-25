@@ -50,7 +50,7 @@ export class UserService {
    */
   deleteProduct(id: number): Observable<any> {
     // Retorna 'any' ou uma interface de sucesso de deleção, se sua API retornar uma.
-    return this._httpClient.delete(`http://localhost:3000/apii/products/${id}`);
+    return this._httpClient.delete(`http://localhost:3000/api/products/${id}`);
   }
 
   /**

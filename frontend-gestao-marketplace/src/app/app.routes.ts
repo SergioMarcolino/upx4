@@ -5,6 +5,8 @@ import { NewProductComponent } from './pages/new-product/new-product';
 import { authGuard } from './guards/auth-guards';
 import { Register } from './pages/register/register';
 import { ProductsComponent } from './pages/products/products';
+import { SalesComponent } from './pages/sales/sales';
+import { NewSupplierComponent} from './pages/new-supplier/new-supplier';
 
 
 export const routes: Routes = [
@@ -21,6 +23,7 @@ export const routes: Routes = [
     redirectTo: '/login',
     pathMatch: 'full',
   },
+
   {
     path: '',
     component: Layout,
@@ -30,10 +33,15 @@ export const routes: Routes = [
         path: 'products',
         component: ProductsComponent,
       },
+      { path: 'new-supplier', component: NewSupplierComponent },
       {
         path: 'new-product',
         component:  NewProductComponent,
-      }
+      },
+       {
+    path: 'vendas',
+    component: SalesComponent,
+  },
     ],
   },
   {

@@ -1,0 +1,128 @@
+[
+  {
+    "id": 1761414838600,
+    "totalAmount": 3330,
+    "createdAt": "2025-10-25T17:53:58.600Z",
+    "items": [
+      {
+        "id": 1761414838600.958,
+        "productId": 8,
+        "quantitySold": 10,
+        "pricePerUnit": 333,
+        "costPerUnit": 2222
+      }
+    ]
+  },
+  {
+    "id": 1761426873364,
+    "totalAmount": 200,
+    "createdAt": "2025-10-25T21:14:33.364Z",
+    "items": [
+      {
+        "id": 1761426873364.139,
+        "productId": 1,
+        "quantitySold": 1,
+        "pricePerUnit": 200,
+        "costPerUnit": 120
+      }
+    ]
+  },
+  {
+    "id": 1761426911957,
+    "totalAmount": 2240,
+    "createdAt": "2025-10-25T21:15:11.957Z",
+    "items": [
+      {
+        "id": 1761426911957.0178,
+        "productId": 3,
+        "quantitySold": 8,
+        "pricePerUnit": 280,
+        "costPerUnit": 180
+      }
+    ]
+  },
+  {
+    "id": 1761427026627,
+    "totalAmount": 9000,
+    "createdAt": "2025-10-25T21:17:06.627Z",
+    "items": [
+      {
+        "id": 1761427026627.369,
+        "productId": 4,
+        "quantitySold": 2,
+        "pricePerUnit": 4500,
+        "costPerUnit": 3200
+      }
+    ]
+  },
+  {
+    "id": 1761427232196,
+    "totalAmount": 250,
+    "createdAt": "2025-10-25T21:20:32.196Z",
+    "items": [
+      {
+        "id": 1761427232196.3037,
+        "productId": 7,
+        "quantitySold": 10,
+        "pricePerUnit": 25,
+        "costPerUnit": 10
+      }
+    ]
+  },
+  {
+    "id": 1761427337079,
+    "totalAmount": 100,
+    "createdAt": "2025-10-25T21:22:17.079Z",
+    "items": [
+      {
+        "id": 1761427337079.7427,
+        "productId": 8,
+        "quantitySold": 1,
+        "pricePerUnit": 100,
+        "costPerUnit": 100
+      }
+    ]
+  },
+  {
+    "id": 1761427353060,
+    "totalAmount": 1200,
+    "createdAt": "2025-10-25T21:22:33.060Z",
+    "items": [
+      {
+        "id": 1761427353060.0613,
+        "productId": 8,
+        "quantitySold": 12,
+        "pricePerUnit": 100,
+        "costPerUnit": 100
+      }
+    ]
+  },
+  {
+    "id": 1761428013355,
+    "totalAmount": 1200,
+    "createdAt": "2025-10-25T21:33:33.355Z",
+    "items": [
+      {
+        "id": 1761428013355.1316,
+        "productId": 8,
+        "quantitySold": 12,
+        "pricePerUnit": 100,
+        "costPerUnit": 100
+      }
+    ]
+  },
+  {
+    "id": 1761428355995,
+    "totalAmount": 100,
+    "createdAt": "2025-10-25T21:39:15.995Z",
+    "items": [
+      {
+        "id": 1761428355995.0076,
+        "productId": 8,
+        "quantitySold": 1,
+        "pricePerUnit": 100,
+        "costPerUnit": 100
+      }
+    ]
+  }
+]

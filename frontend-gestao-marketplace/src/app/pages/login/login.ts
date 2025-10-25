@@ -5,7 +5,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { UserService } from '../../services/user'; // Verifique o caminho
 import { UserAuthService } from '../../services/user-auth'; // Verifique o caminho
 import { Router, RouterLink } from '@angular/router';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HttpErrorResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { take } from 'rxjs';
 
@@ -36,30 +36,45 @@ export class Login {
   private readonly _router = inject(Router);
 
   login() {
-    // 1. Não prossegue se o formulário for inválido
-    if(this.userForm.invalid) return;
+   // 1. Não prossegue se o formulário for inválido
+   if(this.userForm.invalid) {
+       // Opcional: Marcar campos como 'touched' para mostrar erros
+       this.userForm.markAllAsTouched();
+       return;
+   }
 
-    // Acessa os valores do formulário
-    const email = this.userForm.get('email')?.value as string;
-    const password = this.userForm.get('password')?.value as string;
+   // Limpa erro anterior e inicia loading (opcional)
+   this.loginErrorMessage = '';
+   // this.isLoading = true; // Se tiver uma flag de loading
 
-    // 2. Chama o serviço de login
-    this._userService.login(email, password).pipe(take(1)).subscribe({
-      next: (response) => {
-        this.loginErrorMessage = '';
-        
-        // Salva o token (assumindo que a resposta tenha 'data.token')
-        this._userAuthService.setUserToken(response.data.token);
+   // Acessa os valores do formulário
+   const email = this.userForm.get('email')?.value as string;
+   const password = this.userForm.get('password')?.value as string;
 
-        // Redireciona para a tela de produtos
-        this._router.navigate(['/products']);
-      },
-      error: (error) => {
-        console.error('Erro de Login:', error);
-        
-        // Exibe mensagem de erro da API
-        this.loginErrorMessage = error.error.message || 'Erro de conexão ou credenciais inválidas.';
-      },
-    });
+   // 2. Chama o serviço de login
+   this._userService.login(email, password).pipe(take(1)).subscribe({
+     next: (response) => {
+       // this.isLoading = false; // Para loading
+
+       // 👇 CORREÇÃO APLICADA AQUI 👇
+       this._userAuthService.setUserToken(response.token);
+
+       // Redireciona para a tela de produtos
+       this._router.navigate(['/products']);
+     },
+     error: (error: HttpErrorResponse) => { // Tipar o erro ajuda
+       // this.isLoading = false; // Para loading
+       console.error('Erro de Login:', error);
+
+       // Tenta pegar a mensagem específica do backend
+       if (error.error && error.error.message) {
+           this.loginErrorMessage = error.error.message;
+       } else if (error.status === 0 || error.status === 503) {
+           this.loginErrorMessage = 'Erro de conexão com o servidor. Tente novamente mais tarde.';
+       } else {
+           this.loginErrorMessage = 'Credenciais inválidas ou erro desconhecido.';
+       }
+     },
+   });
   }
 }

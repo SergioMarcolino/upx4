@@ -1,0 +1,44 @@
+[
+  {
+    "id": 1761414838604.4778,
+    "productId": 8,
+    "quantity": -10,
+    "type": "SALE",
+    "createdAt": "2025-10-25T17:53:58.604Z"
+  },
+  {
+    "id": 1761427328402.7952,
+    "productId": 8,
+    "quantity": 100,
+    "type": "INITIAL_ADJUSTMENT",
+    "createdAt": "2025-10-25T21:22:08.402Z"
+  },
+  {
+    "id": 1761427337085.3767,
+    "productId": 8,
+    "quantity": -1,
+    "type": "SALE",
+    "createdAt": "2025-10-25T21:22:17.085Z"
+  },
+  {
+    "id": 1761427353064.0828,
+    "productId": 8,
+    "quantity": -12,
+    "type": "SALE",
+    "createdAt": "2025-10-25T21:22:33.064Z"
+  },
+  {
+    "id": 1761428013359.8955,
+    "productId": 8,
+    "quantity": -12,
+    "type": "SALE",
+    "createdAt": "2025-10-25T21:33:33.359Z"
+  },
+  {
+    "id": 1761428355999.493,
+    "productId": 8,
+    "quantity": -1,
+    "type": "SALE",
+    "createdAt": "2025-10-25T21:39:15.999Z"
+  }
+]
