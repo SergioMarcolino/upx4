@@ -1,0 +1,36 @@
+<div class="bg-white rounded-xl shadow border border-gray-100 p-5 sm:p-6 transition-shadow duration-200 hover:shadow-md">
+
+  <div class="flex items-start gap-4">
+
+    <div class="p-3 rounded-lg shrink-0" [ngClass]="themeClasses.iconBg">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+           class="w-6 h-6"
+           [ngClass]="themeClasses.iconText"
+           [innerHTML]="heroicons[icon] | safeHtml">
+           <path *ngIf="!heroicons[icon]" stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
+      </svg>
+    </div>
+
+    <div class="flex-1 min-w-0"> <p class="text-sm font-medium text-gray-500 truncate">{{ title }}</p>
+
+      <p class="text-2xl font-bold mt-1 truncate" [ngClass]="themeClasses.valueText">
+        @if (loading) {
+          <span class="inline-block h-6 w-24 bg-gray-200 rounded animate-pulse"></span>
+        } @else {
+          @if(valueIsCurrency){
+             {{ value | currency:'BRL':'symbol':'1.2-2' }}
+          } @else {
+            {{ value | number }} {{ unit }}
+          }
+        }
+      </p>
+
+      @if (subtitle && !loading) {
+        <p class="text-xs text-gray-400 mt-1 truncate">{{ subtitle }}</p>
+      }
+       @if (subtitle && loading) {
+         <span class="inline-block h-3 w-32 bg-gray-200 rounded animate-pulse mt-2"></span>
+      }
+    </div>
+
+  </div> </div> 

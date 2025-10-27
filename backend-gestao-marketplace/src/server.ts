@@ -12,6 +12,7 @@ import baseRoutes from './routes/base-routes'; // Rota base '/'
 import productsRoutes from './routes/products-routes';
 import salesRoutes from './routes/sales-routes';
 import suppliersRoutes from './routes/suppliers-routes';
+import reportsRoutes from './routes/reports-routes';
 
 // Função assíncrona para encapsular a inicialização
 const startServer = async () => {
@@ -44,6 +45,7 @@ const startServer = async () => {
   app.use('/api/products', productsRoutes); // Rotas de Produtos (CRUD)
   app.use('/api/sales', salesRoutes);       // Rotas de Vendas (Criar, Listar)
   app.use('/api/suppliers', suppliersRoutes); // Rotas de Fornecedores (Listar, Criar)
+  app.use('/api/reports', reportsRoutes); // Rotas de Relatórios
 
   // --- Middlewares de Tratamento de Erro (devem vir DEPOIS das rotas) ---
 
