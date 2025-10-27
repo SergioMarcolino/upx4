@@ -1,16 +1,21 @@
 // Em src/controllers/suppliers-controller.ts
 import { Request, Response } from 'express';
-import { db } from '../repository';
-import { SupplierRequest, Supplier } from '../types'; // Importar Supplier
+import { AppDataSource } from '../data-source'; // 👈 Importar AppDataSource
+import { Supplier } from '../entities/Supplier'; // 👈 Importar a Entidade
+import { SupplierRequest } from '../types';
+import { QueryFailedError } from 'typeorm'; // Para tratar erros específicos do DB
+
+// Obtém o repositório para a entidade Supplier
+const supplierRepository = AppDataSource.getRepository(Supplier);
 
 // GET: Listar todos os fornecedores
-export const getSuppliers = (req: Request, res: Response): void => {
+export const getSuppliers = async (req: Request, res: Response): Promise<void> => { // 👈 async
   try {
-    const data = db.read();
+    // Usa o método find() do repositório
+    const suppliers = await supplierRepository.find(); 
     res.status(200).json({
       message: 'Fornecedores listados com sucesso',
-      // Garante que retorne um array mesmo se o arquivo não existir inicialmente
-      data: data.suppliers || [] 
+      data: suppliers 
     });
   } catch (error: any) {
     console.error("Erro em getSuppliers:", error);
@@ -19,51 +24,40 @@ export const getSuppliers = (req: Request, res: Response): void => {
 };
 
 // POST: Criar um novo fornecedor
-export const createSupplier = (req: Request, res: Response): void => {
+export const createSupplier = async (req: Request, res: Response): Promise<void> => { // 👈 async
   try {
     const { companyName, cnpj, contactName, phone }: SupplierRequest = req.body;
 
-    // Validação básica de campos obrigatórios
-    if (!companyName || !cnpj) {
-      res.status(400).json({ error: 'Campos obrigatórios', message: 'Nome da Empresa e CNPJ são obrigatórios.' });
-      return;
-    }
+    if (!companyName || !cnpj) { /* ... (validação) */ return; }
 
-    const data = db.read();
-    // Garante que data.suppliers seja um array
-    const suppliers = data.suppliers || []; 
-
-    // Validação de CNPJ duplicado
-    // Remove caracteres não numéricos do CNPJ para comparação
+    // Limpa CNPJ para verificação de duplicidade (igual antes)
     const cleanCnpj = cnpj.replace(/\D/g, ''); 
-    if (suppliers.some(s => s.cnpj.replace(/\D/g, '') === cleanCnpj)) {
-       res.status(400).json({ error: 'CNPJ duplicado', message: 'Já existe um fornecedor com este CNPJ.' });
-       return;
-    }
 
-    // Calcula o próximo ID
-    const newSupplierId = suppliers.length > 0 ? Math.max(...suppliers.map(s => s.id)) + 1 : 1;
+    // Tenta criar uma nova instância da Entidade
+    const newSupplier = supplierRepository.create({ // Usa .create() para instanciar
+       companyName: companyName.trim(),
+       cnpj: cnpj, // Salva com máscara se houver
+       contactName: contactName?.trim(),
+       phone: phone?.trim()
+    });
 
-    const newSupplier: Supplier = {
-      id: newSupplierId,
-      companyName: companyName.trim(), // Remove espaços extras
-      cnpj: cnpj, // Salva o CNPJ como foi enviado (pode incluir máscara)
-      contactName: contactName?.trim(),
-      phone: phone?.trim()
-    };
-
-    // Adiciona ao array e salva
-    suppliers.push(newSupplier);
-    data.suppliers = suppliers; // Atualiza o objeto data
-    db.write(data);
+    // Tenta salvar no banco de dados
+    const savedSupplier = await supplierRepository.save(newSupplier); // Usa .save()
 
     res.status(201).json({
       message: 'Fornecedor criado com sucesso',
-      data: newSupplier
+      data: savedSupplier // Retorna o objeto salvo (com ID)
     });
 
   } catch (error: any) {
      console.error("Erro em createSupplier:", error);
-    res.status(500).json({ error: 'Erro interno do servidor', message: error.message });
+     // Trata erro de violação de constraint UNIQUE (ex: CNPJ duplicado)
+     if (error instanceof QueryFailedError && error.message.includes('UNIQUE constraint')) {
+          if (error.message.includes('cnpj')) { // Verifica se foi no CNPJ
+             res.status(400).json({ error: 'CNPJ duplicado', message: 'Já existe um fornecedor com este CNPJ.' });
+             return;
+          }
+     }
+    res.status(500).json({ error: 'Erro interno do servidor', message: 'Não foi possível criar o fornecedor.' });
   }
 };

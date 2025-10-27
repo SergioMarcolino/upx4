@@ -13,7 +13,7 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
     console.error("ERRO FATAL: JWT_SECRET não definida ou vazia no arquivo src/config.ts (middleware)");
     res.status(500).json({ error: 'Erro de configuração interna', message: 'O servidor não está configurado corretamente para autenticação.' });
     return;
-  }
+  } 
 
   // --- LOGS DE DEBUG ---
   console.log('\n--- MIDDLEWARE ---'); // Marcador de início

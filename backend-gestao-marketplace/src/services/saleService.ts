@@ -1,89 +1,124 @@
-// Em src/services/saleService.ts
-import { db } from '../repository';
-import { Sale, SaleItem, SaleRequestDTO, MovementType, Product } from '../types';
+// Em src/services/saleService.ts (BACKEND)
+import { AppDataSource } from '../data-source';
+import { Sale } from '../entities/Sale';
+import { SaleItem } from '../entities/SaleItem';
+import { Product } from '../entities/Product';
+import { SaleRequestDTO} from '../types'; // Renomeia SaleItemDTO para evitar conflito
 import { StockService } from './stockService';
+import { MovementType } from '../types';
+import { EntityManager, In } from 'typeorm'; // In para buscar múltiplos produtos
+
+// Repositórios (podem ser obtidos dentro da transação também)
+const productRepository = AppDataSource.getRepository(Product);
+const saleRepository = AppDataSource.getRepository(Sale);
+// const saleItemRepository = AppDataSource.getRepository(SaleItem); // Não usado diretamente se cascade=true
+
+const stockService = new StockService();
 
 export class SaleService {
-  private stockService: StockService;
-
-  constructor() {
-    this.stockService = new StockService(); // Instancia o serviço de estoque
-  }
 
   /**
-   * Processa uma nova venda.
-   * Valida estoque, salva a venda e dá baixa.
+   * Processa uma nova venda completa dentro de uma transação.
+   * Valida estoque, cria Sale, cria SaleItems, chama StockService para baixa.
    */
-  public createSale(saleRequest: SaleRequestDTO): Sale {
-    
-    // --- PARTE 1: LEITURA E VALIDAÇÃO ---
-    const data = db.read();
-    let totalSaleAmount = 0;
-    const saleItems: SaleItem[] = [];
-    // Lista temporária dos produtos que vamos dar baixa
-    const itemsToProcess: Array<{ product: Product, quantityToSell: number }> = [];
+  public async createSale(saleRequest: SaleRequestDTO): Promise<Sale> { // Retorna Promise<Sale>
 
-    for (const itemDTO of saleRequest.items) {
-      const product = data.products.find(p => p.id === itemDTO.productId);
-
-      if (!product) {
-        throw new Error(`Produto não encontrado: ${itemDTO.productId}`);
-      }
-
-      // Valida o estoque (usando o campo 'quantity' do produto)
-      if (!product.quantity || product.quantity < itemDTO.quantity) {
-        throw new Error(`Estoque insuficiente para: ${product.title} (Estoque atual: ${product.quantity})`);
-      }
-
-      // Cria o SaleItem (congelando preços e custos)
-      const saleItem: SaleItem = {
-        id: Date.now() + Math.random(),
-        productId: product.id,
-        quantitySold: itemDTO.quantity,
-        pricePerUnit: product.sale_price,     // 👈 Pega o preço de venda
-        costPerUnit: product.purchase_price, // 👈 Pega o preço de custo
-      };
-      saleItems.push(saleItem);
-
-      // Acumula o total e guarda o item para dar baixa
-      totalSaleAmount += (product.sale_price * itemDTO.quantity);
-      itemsToProcess.push({ product, quantityToSell: itemDTO.quantity });
+    // --- PARTE 1: VALIDAÇÃO PRELIMINAR ---
+    if (!saleRequest || !Array.isArray(saleRequest.items) || saleRequest.items.length === 0) {
+        throw new Error('Requisição de venda inválida. O array "items" é obrigatório e não pode ser vazio.');
+    }
+    const productIds = saleRequest.items.map(item => item.productId);
+    if (productIds.some(id => isNaN(id) || id <= 0)) {
+        throw new Error('Requisição contém IDs de produto inválidos.');
     }
 
-    // --- PARTE 2: ESCRITA (SALVAR NO "BANCO") ---
-    // Se chegou até aqui, todas as validações passaram.
-    
-    try {
-      // 1. Cria a Venda "pai"
-      const newSale: Sale = {
-        id: Date.now(),
-        totalAmount: totalSaleAmount,
-        createdAt: new Date().toISOString(),
-        items: saleItems
-      };
+    // Variável para armazenar a venda criada
+    let savedSale: Sale;
 
-      // 2. Dá baixa no estoque (um item de cada vez)
-      // O StockService vai ler e salvar o db.json para CADA item
-      for (const item of itemsToProcess) {
-        this.stockService.addMovement(
-          item.product.id,
-          -item.quantityToSell, // 👈 IMPORTANTE: Quantidade NEGATIVA
-          MovementType.SALE
-        );
-      }
-      
-      // 3. Salva a Venda
-      // (Temos que ler o DB de novo, pois o stockService já o modificou)
-      const finalDb = db.read();
-      finalDb.sales.push(newSale);
-      db.write(finalDb);
+    // --- PARTE 2: EXECUÇÃO DENTRO DE UMA TRANSAÇÃO ---
+    await AppDataSource.manager.transaction(async (transactionalEntityManager: EntityManager) => {
+        // Obtém repositórios específicos da transação
+        const productRepoTx = transactionalEntityManager.getRepository(Product);
+        const saleRepoTx = transactionalEntityManager.getRepository(Sale);
+        // const saleItemRepoTx = transactionalEntityManager.getRepository(SaleItem); // Necessário se cascade=false
 
-      return newSale; // Retorna a venda para o controller
+        // 1. Busca TODOS os produtos da venda de uma vez no banco
+        const productsInSale = await productRepoTx.findBy({
+            id: In(productIds) // Usa operador IN para buscar múltiplos IDs
+        });
 
-    } catch (error: any) {
-      // Se o stockService falhar, o erro será pego aqui
-      console.error("ERRO GRAVE ao processar venda:", error);
-      throw new Error(`Falha ao salvar a venda: ${error.message}`);
-    }
+        // Mapeia produtos por ID para fácil acesso
+        const productMap = new Map(productsInSale.map(p => [p.id, p]));
+
+        let totalSaleAmount = 0;
+        const saleItemsToCreate: Partial<SaleItem>[] = []; // Usamos Partial aqui
+
+        // 2. Valida estoque e prepara os SaleItems
+        for (const itemDTO of saleRequest.items) {
+            const product = productMap.get(itemDTO.productId);
+
+            if (!product) {
+                // Se algum produto não foi encontrado no DB, a transação dará rollback
+                throw new Error(`Produto com ID ${itemDTO.productId} não encontrado no banco de dados.`);
+            }
+
+            // Valida o estoque (usando a quantidade ATUAL do banco)
+            if (product.quantity < itemDTO.quantity) {
+                 // Se estoque insuficiente, a transação dará rollback
+                throw new Error(`Estoque insuficiente para: ${product.title} (Disponível: ${product.quantity}, Pedido: ${itemDTO.quantity})`);
+            }
+
+            // Prepara o objeto SaleItem (sem ID, sem 'sale' ainda)
+            const saleItemData: Partial<SaleItem> = {
+                productId: product.id,
+                quantitySold: itemDTO.quantity,
+                pricePerUnit: product.sale_price,     // Congela o preço de venda
+                costPerUnit: product.purchase_price, // Congela o custo
+            };
+            saleItemsToCreate.push(saleItemData);
+
+            // Acumula o total
+            totalSaleAmount += (product.sale_price * itemDTO.quantity);
+        }
+
+        // 3. Cria a Entidade Sale (ainda sem salvar)
+        const newSale = saleRepoTx.create({
+            totalAmount: totalSaleAmount,
+            // createdAt será definido pelo @CreateDateColumn
+            // Cria instâncias da entidade SaleItem a partir dos dados parciais
+            items: saleItemsToCreate.map(itemData => transactionalEntityManager.create(SaleItem, itemData))
+        });
+
+
+        // 4. Salva a Sale e seus Items (cascade: true salva os items automaticamente)
+        savedSale = await saleRepoTx.save(newSale); // Salva a venda e os itens relacionados
+        console.log(`[SaleService TYPEORM] Venda ID ${savedSale.id} e itens salvos.`);
+
+        // 5. Dá baixa no estoque para cada item vendido (chamando StockService)
+        // O StockService já usa sua própria transação interna ou pode ser adaptado
+        // para receber o transactionalEntityManager se necessário.
+        // Por segurança, chamamos fora do save, mas ainda dentro da transação principal.
+        for (const item of savedSale.items) {
+             // O StockService fará o INSERT em StockMovements e o UPDATE em Products
+            await stockService.addMovement(
+                item.productId,
+                -item.quantitySold, // Quantidade NEGATIVA
+                MovementType.SALE
+            );
+        }
+        console.log(`[SaleService TYPEORM] Baixa de estoque processada para venda ID ${savedSale.id}.`);
+
+        // Se chegar aqui sem erros, a transação será commitada.
+
+    }).catch(error => {
+        // Captura erros da transação (ex: produto não encontrado, estoque insuficiente, erro no stockService)
+        console.error(`[SaleService TYPEORM ERROR] Falha na transação da venda:`, error);
+        // Re-lança o erro para o controller saber que falhou
+        throw error;
+    });
+
+    // Retorna a venda salva (se a transação foi bem-sucedida)
+    // Usamos '!' pois a lógica garante que savedSale será definida se não houver erro.
+    return savedSale!;
   }
 }

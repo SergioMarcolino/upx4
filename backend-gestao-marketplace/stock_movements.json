@@ -40,5 +40,96 @@
     "quantity": -1,
     "type": "SALE",
     "createdAt": "2025-10-25T21:39:15.999Z"
+  },
+  {
+    "id": 1761435172767.3967,
+    "productId": 9,
+    "quantity": 120,
+    "type": "INITIAL_ADJUSTMENT",
+    "createdAt": "2025-10-25T23:32:52.767Z"
+  },
+  {
+    "id": 1761435945880.8955,
+    "productId": 8,
+    "quantity": -4,
+    "type": "SALE",
+    "createdAt": "2025-10-25T23:45:45.880Z"
+  },
+  {
+    "id": 1761435964481.2097,
+    "productId": 8,
+    "quantity": -12,
+    "type": "SALE",
+    "createdAt": "2025-10-25T23:46:04.481Z"
+  },
+  {
+    "id": 1761435964498.6655,
+    "productId": 9,
+    "quantity": -12,
+    "type": "SALE",
+    "createdAt": "2025-10-25T23:46:04.498Z"
+  },
+  {
+    "id": 1761435987568.476,
+    "productId": 8,
+    "quantity": -12,
+    "type": "SALE",
+    "createdAt": "2025-10-25T23:46:27.568Z"
+  },
+  {
+    "id": 1761436044058.3108,
+    "productId": 8,
+    "quantity": -1,
+    "type": "SALE",
+    "createdAt": "2025-10-25T23:47:24.058Z"
+  },
+  {
+    "id": 1761436044085.6584,
+    "productId": 9,
+    "quantity": -1,
+    "type": "SALE",
+    "createdAt": "2025-10-25T23:47:24.085Z"
+  },
+  {
+    "id": 1761436689299.3035,
+    "productId": 8,
+    "quantity": -12,
+    "type": "SALE",
+    "createdAt": "2025-10-25T23:58:09.299Z"
+  },
+  {
+    "id": 1761436689336.563,
+    "productId": 9,
+    "quantity": -13,
+    "type": "SALE",
+    "createdAt": "2025-10-25T23:58:09.336Z"
+  },
+  {
+    "id": 1761439188447.5464,
+    "productId": 8,
+    "quantity": -1,
+    "type": "SALE",
+    "createdAt": "2025-10-26T00:39:48.447Z"
+  },
+  {
+    "id": 1761439188468.3967,
+    "productId": 9,
+    "quantity": -1,
+    "type": "SALE",
+    "createdAt": "2025-10-26T00:39:48.468Z"
+  },
+  {
+    "id": 1761439420140.3872,
+    "productId": 8,
+    "quantity": -1,
+    "type": "SALE",
+    "createdAt": "2025-10-26T00:43:40.140Z"
+  },
+  {
+    "id": 1761439420158.1523,
+    "productId": 9,
+    "quantity": -1,
+    "type": "SALE",
+    "createdAt": "2025-10-26T00:43:40.158Z"
   }
 ]

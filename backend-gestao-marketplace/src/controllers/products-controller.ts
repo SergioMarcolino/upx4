@@ -1,281 +1,216 @@
 // Em src/controllers/products-controller.ts
 import { Request, Response } from 'express';
-// Importa os tipos necessários
-import { Product, ProductRequest, MovementType } from '../types';
-import { StockService } from '../services/stockService';
-import { db } from '../repository'; // Usar o repository para ler/escrever
+import { AppDataSource } from '../data-source';
+import { Product } from '../entities/Product'; // Importa a ENTIDADE Product
+import { Supplier } from '../entities/Supplier'; // Importa Supplier para validação
+import { ProductRequest, MovementType } from '../types';
+import { StockService } from '../services/stockService'; // Importa o StockService já refatorado
+import { QueryFailedError, FindOptionsWhere } from 'typeorm'; // Para erros e filtros
 
+// Obtém o repositório para a entidade Product
+const productRepository = AppDataSource.getRepository(Product);
+const supplierRepository = AppDataSource.getRepository(Supplier); // Repositório de Supplier para validação
 const stockService = new StockService();
 
 // =======================================================
-// GET: Listar Produtos
+// GET: Listar Produtos (/api/products)
 // =======================================================
-export const getProducts = (req: Request, res: Response): void => {
+export const getProducts = async (req: Request, res: Response): Promise<void> => {
   try {
-    // Lê produtos usando o repository
-    const products = db.read().products || [];
+    // Busca todos os produtos usando o repositório
+    // 'relations' carrega o objeto Supplier junto
+    const products = await productRepository.find({ relations: ['supplier'] });
     res.status(200).json({
       message: 'Produtos listados com sucesso',
       data: products
     });
   } catch (error: any) {
     console.error('Erro ao listar produtos:', error);
-    res.status(500).json({ error: 'Erro interno do servidor', message: error.message });
+    res.status(500).json({ error: 'Erro interno do servidor', message: 'Falha ao buscar produtos.' });
   }
 };
 
 // =======================================================
-// POST: Criar Produto (Corrigido)
+// POST: Criar Produto (/api/products)
 // =======================================================
-export const createProduct = (req: Request, res: Response): void => {
+export const createProduct = async (req: Request, res: Response): Promise<void> => {
   try {
-    // Desestrutura direto do body com a tipagem
     const {
-      title,
-      purchase_price,
-      sale_price,
-      description,
-      category,
-      imageBase64, // Nome correto
-      supplierId,
-      quantity
+      title, purchase_price, sale_price, description,
+      category, imageBase64, supplierId, quantity
     }: ProductRequest = req.body;
 
-    // --- Validações Essenciais ---
-    // Checa se os valores numéricos são realmente números
+    // --- Validações ---
     if (isNaN(purchase_price) || isNaN(sale_price) || isNaN(quantity) || isNaN(supplierId)) {
-       // 👇 CORREÇÃO: Remover 'return'
        res.status(400).json({ error: 'Tipo inválido', message: 'Preços, quantidade e ID do fornecedor devem ser números.' });
-       return; // Adicionar return vazio para parar a execução
+       return;
     }
-    // Checa se os valores numéricos são positivos ou zero
-     if (purchase_price < 0 || sale_price < 0 || quantity < 0) {
-       // 👇 CORREÇÃO: Remover 'return'
+    if (purchase_price < 0 || sale_price < 0 || quantity < 0) {
        res.status(400).json({ error: 'Valor inválido', message: 'Preços e quantidade não podem ser negativos.' });
-       return; // Adicionar return vazio
+       return;
     }
-    // Checa se os campos string obrigatórios não estão vazios
-    if (!title || !description || !category || !imageBase64) {
-        // 👇 CORREÇÃO: Remover 'return'
-        res.status(400).json({ error: 'Campos obrigatórios', message: 'Título, Descrição, Categoria e Imagem são obrigatórios.' });
-        return; // Adicionar return vazio
+    if (!title || !description || !category /*|| !imageBase64*/) {
+       res.status(400).json({ error: 'Campos obrigatórios', message: 'Título, Descrição e Categoria são obrigatórios.' });
+       return;
     }
-
-    // Lê os dados atuais do "banco"
-    const data = db.read();
-
-    // Valida se o supplierId existe
-    const allSuppliers = data.suppliers || [];
-    if (!allSuppliers.some(s => s.id === supplierId)) {
-        // 👇 CORREÇÃO: Remover 'return'
+    // Validação de Fornecedor
+    const supplierExists = await supplierRepository.exist({ where: { id: supplierId } });
+    if (!supplierExists) {
         res.status(400).json({ error: 'Fornecedor inválido', message: `O ID do fornecedor ${supplierId} não existe.` });
-        return; // Adicionar return vazio
+        return;
     }
     // --- Fim Validações ---
 
-
-    const products = data.products || [];
-    const newProductId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
-
-    const newProduct: Product = {
-      id: newProductId,
+    // Cria a instância da entidade Product
+    const newProductEntity = productRepository.create({
       title: title.trim(),
       purchase_price: purchase_price,
       sale_price: sale_price,
       description: description.trim(),
       category: category,
-      status: "anunciado", // Status inicial padrão
-      imageBase64: imageBase64, // Salva o base64
-      supplierId: supplierId, // Salva o ID do fornecedor
-      quantity: quantity, // Salva a quantidade inicial como cache
-      date: new Date().toISOString() // Data de criação
-    };
+      imageBase64: imageBase64 || null,
+      supplierId: supplierId,
+      quantity: quantity,
+      status: "anunciado",
+    });
 
-    products.push(newProduct);
-    data.products = products; // Atualiza o objeto data
-    db.write(data); // Salva tudo de uma vez
+    const savedProduct = await productRepository.save(newProductEntity);
 
-    // Registra estoque inicial (DEPOIS de salvar o produto)
     try {
-      stockService.addMovement(newProduct.id, newProduct.quantity, MovementType.INITIAL_ADJUSTMENT);
+      await stockService.addMovement(savedProduct.id, savedProduct.quantity, MovementType.INITIAL_ADJUSTMENT);
     } catch (stockErr: any) {
-       console.error(`Produto [${newProduct.id}] salvo, MAS falhou ao registrar movimento de estoque:`, stockErr.message);
-       // Não retorna erro para o cliente aqui, pois o produto foi criado.
+       console.error(`Produto [${savedProduct.id}] salvo no DB, MAS falhou ao registrar movimento de estoque:`, stockErr.message);
     }
 
-    res.status(201).json({ message: 'Produto cadastrado com sucesso', data: newProduct });
+    res.status(201).json({ message: 'Produto cadastrado com sucesso', data: savedProduct });
 
   } catch (error: any) {
     console.error('Erro ao cadastrar produto:', error);
-    // Verifica se é um erro de leitura/escrita do db para dar uma mensagem melhor
-    if (error.message.includes('Falha ao ler') || error.message.includes('Falha ao salvar')) {
-       // 👇 CORREÇÃO: Remover 'return'
-       res.status(500).json({ error: 'Erro de Banco de Dados', message: error.message });
-       return; // Adicionar return vazio
-    }
-    res.status(500).json({ error: 'Erro interno do servidor', message: error.message });
+    res.status(500).json({ error: 'Erro interno do servidor', message: 'Não foi possível cadastrar o produto.' });
   }
 };
 
 // =======================================================
-// PUT: Atualizar Produto
+// PUT: Atualizar Produto (/api/products/:id)
 // =======================================================
-export const updateProduct = (req: Request, res: Response): void => {
-  try {
-    const productId = parseInt(req.params.id, 10);
-    if (isNaN(productId)) {
-        // 👇 CORREÇÃO: Remover 'return'
-        res.status(400).json({ error: 'ID inválido', message: 'O ID do produto deve ser um número.' });
-        return; // Adicionar return vazio
-    }
-
-    // Pega supplierId do body, remove quantity (ignorado)
-    // Também pega imageBase64 se foi enviado
-    const { quantity, supplierId, imageBase64, ...updateData } = req.body;
-
-    const data = db.read(); // Lê o estado atual do DB
-
-    // Valida supplierId se foi fornecido
-    if (supplierId !== undefined) {
-        if (isNaN(supplierId)) {
-           // 👇 CORREÇÃO: Remover 'return'
-           res.status(400).json({ error: 'Tipo inválido', message: 'ID do fornecedor deve ser um número.' });
-           return; // Adicionar return vazio
+ export const updateProduct = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const productId = parseInt(req.params.id, 10);
+        if (isNaN(productId)) {
+            res.status(400).json({ error: 'ID inválido', message: 'O ID do produto deve ser um número.' });
+            return;
         }
-        const allSuppliers = data.suppliers || [];
-        if (!allSuppliers.some(s => s.id === supplierId)) {
-            // 👇 CORREÇÃO: Remover 'return'
-            res.status(400).json({ error: 'Fornecedor inválido', message: `O ID do fornecedor ${supplierId} não existe.` });
-            return; // Adicionar return vazio
+
+        const { quantity, supplierId, ...updateData }: Partial<ProductRequest & {quantity?: number}> = req.body;
+
+        if (supplierId !== undefined) {
+             if (isNaN(supplierId)) {
+                 res.status(400).json({ error: 'Tipo inválido', message: 'ID do fornecedor deve ser um número.' });
+                 return;
+             }
+             const supplierExists = await supplierRepository.exist({ where: { id: supplierId } });
+             if (!supplierExists) {
+                 res.status(400).json({ error: 'Fornecedor inválido', message: `O ID do fornecedor ${supplierId} não existe.` });
+                 return;
+             }
         }
+
+        const updatePayload: Partial<Product> = {
+            ...updateData,
+             ...(supplierId !== undefined && { supplierId: supplierId }),
+             date: new Date()
+        };
+
+        const updateResult = await productRepository.update({ id: productId }, updatePayload);
+
+        if (updateResult.affected === 0) {
+            res.status(404).json({ error: 'Produto não encontrado', message: `Produto ID ${productId} não encontrado para atualização.` });
+            return; // Correção TS2322
+        }
+
+        const updatedProduct = await productRepository.findOne({ where: { id: productId }, relations: ['supplier'] });
+
+        const warningMessage = quantity !== undefined ? "Atualização de 'quantity' ignorada." : undefined;
+
+        res.status(200).json({
+            message: `Produto ID ${productId} atualizado com sucesso`,
+            data: updatedProduct,
+            warning: warningMessage
+        });
+
+    } catch (error: any) {
+        console.error(`Erro ao atualizar produto ID ${req.params.id}:`, error);
+        res.status(500).json({ error: 'Erro interno do servidor', message: 'Não foi possível atualizar o produto.' });
     }
+};
 
-    const products = data.products || [];
-    const productIndex = products.findIndex(p => p.id === productId);
 
-    if (productIndex === -1) {
-       // 👇 CORREÇÃO: Remover 'return'
-       res.status(404).json({ error: 'Produto não encontrado', message: `Produto ID ${productId} não encontrado.` });
-       return; // Adicionar return vazio
+// =======================================================
+// GET: Buscar Produto por ID (/api/products/:id)
+// =======================================================
+ export const getProductById = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const productId = parseInt(req.params.id, 10);
+        if (isNaN(productId)) {
+           res.status(400).json({ error: 'ID inválido', message: 'O ID do produto deve ser um número.' });
+           return; // Adicionado return
+        }
+
+        const product = await productRepository.findOne({
+             where: { id: productId },
+             relations: ['supplier']
+        });
+
+        // 👇 CORREÇÃO TS2322 APLICADA AQUI 👇
+        if (!product) {
+             res.status(404).json({ error: 'Produto não encontrado', message: `Produto ID ${productId} não encontrado.` });
+             return; // Adicionado return
+        }
+        // 👆 FIM DA CORREÇÃO 👆
+
+        res.status(200).json({ message: 'Produto encontrado', data: product });
+
+    } catch (error: any) {
+        console.error(`Erro ao buscar produto ID ${req.params.id}:`, error);
+        res.status(500).json({ error: 'Erro interno do servidor', message: 'Não foi possível buscar o produto.' });
     }
-
-    // Monta o produto atualizado
-    const originalProduct = products[productIndex];
-    const updatedProduct: Product = {
-        ...originalProduct, // Mantém campos não enviados
-        ...updateData,      // Aplica as atualizações do body (exceto quantity e imageBase64)
-        // Atualiza supplierId APENAS se ele veio no body
-        ...(supplierId !== undefined && { supplierId: supplierId }),
-         // Atualiza imageBase64 APENAS se ele veio no body
-        ...(imageBase64 !== undefined && { imageBase64: imageBase64 }),
-        date: new Date().toISOString() // Atualiza a data da última modificação
-    };
-
-    products[productIndex] = updatedProduct;
-    data.products = products; // Atualiza o objeto data
-    db.write(data); // Salva tudo
-
-    // Monta a mensagem de aviso sobre quantity
-    const warningMessage = quantity !== undefined
-      ? "A atualização de 'quantity' foi ignorada. Use Vendas/Compras/Ajustes para alterar o estoque."
-      : undefined;
-
-    res.status(200).json({
-        message: `Produto ID ${productId} atualizado com sucesso`,
-        data: updatedProduct,
-        warning: warningMessage
-    });
-
-  } catch (error: any) {
-    console.error(`Erro ao atualizar produto ID ${req.params.id}:`, error);
-     if (error.message.includes('Falha ao ler') || error.message.includes('Falha ao salvar')) {
-       // 👇 CORREÇÃO: Remover 'return'
-       res.status(500).json({ error: 'Erro de Banco de Dados', message: error.message });
-       return; // Adicionar return vazio
-    }
-    res.status(500).json({ error: 'Erro interno do servidor', message: error.message });
-  }
 };
 
 // =======================================================
-// GET: Buscar Produto por ID
+// DELETE: Excluir Produto (/api/products/:id)
 // =======================================================
-export const getProductById = (req: Request, res: Response): void => {
-  try {
-    const productId = parseInt(req.params.id, 10);
-     if (isNaN(productId)) {
-        // 👇 CORREÇÃO: Remover 'return'
-        res.status(400).json({ error: 'ID inválido', message: 'O ID do produto deve ser um número.' });
-        return; // Adicionar return vazio
+ export const deleteProduct = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const productId = parseInt(req.params.id, 10);
+        if (isNaN(productId)) {
+           res.status(400).json({ error: 'ID inválido', message: 'O ID do produto deve ser um número.' });
+           return; // Adicionado return
+        }
+
+        const deleteResult = await productRepository.delete({ id: productId });
+
+        // 👇 CORREÇÃO TS2322 APLICADA AQUI 👇
+        if (deleteResult.affected === 0) {
+            res.status(404).json({ error: 'Produto não encontrado', message: `Produto ID ${productId} não encontrado para exclusão.` });
+            return; // Adicionado return
+        }
+        // 👆 FIM DA CORREÇÃO 👆
+
+        res.status(200).json({
+          message: `Produto ID ${productId} excluído com sucesso (e suas movimentações de estoque).`
+        });
+
+    } catch (error: any) {
+         // Captura erro específico de FK constraint violation
+         if (error instanceof QueryFailedError && error.message.includes('conflicted with the REFERENCE constraint')) {
+              if (error.message.includes('FK_SaleItems_Products')) {
+                  // 👇 CORREÇÃO TS2322 APLICADA AQUI 👇
+                  res.status(400).json({ error: 'Exclusão não permitida', message: `Produto ID ${req.params.id} não pode ser excluído pois possui vendas associadas no histórico.` });
+                  return; // Adicionado return
+                  // 👆 FIM DA CORREÇÃO 👆
+              }
+         }
+        console.error(`Erro ao excluir produto ID ${req.params.id}:`, error);
+        res.status(500).json({ error: 'Erro interno do servidor', message: 'Não foi possível excluir o produto.' });
     }
-
-    const products = db.read().products || [];
-    const product = products.find(p => p.id === productId);
-
-    if (!product) {
-      // 👇 CORREÇÃO: Remover 'return'
-      res.status(404).json({ error: 'Produto não encontrado', message: `Produto ID ${productId} não encontrado.` });
-      return; // Adicionar return vazio
-    }
-
-    res.status(200).json({ message: 'Produto encontrado', data: product });
-
-  } catch (error: any) {
-    console.error(`Erro ao buscar produto ID ${req.params.id}:`, error);
-     if (error.message.includes('Falha ao ler')) {
-       // 👇 CORREÇÃO: Remover 'return'
-       res.status(500).json({ error: 'Erro de Banco de Dados', message: error.message });
-       return; // Adicionar return vazio
-    }
-    res.status(500).json({ error: 'Erro interno do servidor', message: error.message });
-  }
-};
-
-// =======================================================
-// DELETE: Excluir Produto
-// =======================================================
-export const deleteProduct = (req: Request, res: Response): void => {
-  try {
-    const productId = parseInt(req.params.id, 10);
-     if (isNaN(productId)) {
-        // 👇 CORREÇÃO: Remover 'return'
-        res.status(400).json({ error: 'ID inválido', message: 'O ID do produto deve ser um número.' });
-        return; // Adicionar return vazio
-    }
-
-    const data = db.read();
-    let products = data.products || [];
-    const productIndex = products.findIndex(p => p.id === productId);
-
-    if (productIndex === -1) {
-      // 👇 CORREÇÃO: Remover 'return'
-      res.status(404).json({ error: 'Produto não encontrado', message: `Produto ID ${productId} não encontrado.` });
-      return; // Adicionar return vazio
-    }
-
-    // Remove o produto do array
-    const [deletedProduct] = products.splice(productIndex, 1);
-
-    // Remove também as movimentações de estoque associadas (IMPORTANTE!)
-    let stockMovements = data.stock_movements || [];
-    stockMovements = stockMovements.filter(m => m.productId !== productId);
-
-    // Atualiza o objeto data e salva
-    data.products = products;
-    data.stock_movements = stockMovements;
-    db.write(data);
-
-    res.status(200).json({
-      message: `Produto "${deletedProduct.title}" (ID: ${productId}) e suas movimentações foram excluídos.`
-    });
-
-  } catch (error: any) {
-    console.error(`Erro ao excluir produto ID ${req.params.id}:`, error);
-     if (error.message.includes('Falha ao ler') || error.message.includes('Falha ao salvar')) {
-       // 👇 CORREÇÃO: Remover 'return'
-       res.status(500).json({ error: 'Erro de Banco de Dados', message: error.message });
-       return; // Adicionar return vazio
-    }
-    res.status(500).json({ error: 'Erro interno do servidor', message: error.message });
-  }
 };

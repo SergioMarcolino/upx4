@@ -7,6 +7,8 @@ import { Register } from './pages/register/register';
 import { ProductsComponent } from './pages/products/products';
 import { SalesComponent } from './pages/sales/sales';
 import { NewSupplierComponent} from './pages/new-supplier/new-supplier';
+import { SupplierListComponent } from './pages/supplier-list/supplier-list';
+import { DashboardComponent } from './pages/dashboard/dashboard';
 
 
 export const routes: Routes = [
@@ -33,11 +35,20 @@ export const routes: Routes = [
         path: 'products',
         component: ProductsComponent,
       },
-      { path: 'new-supplier', component: NewSupplierComponent },
+      { path: 'new-supplier', 
+        component: NewSupplierComponent 
+      },
+      { path: 'suppliers', 
+        component: SupplierListComponent
+       },
       {
         path: 'new-product',
         component:  NewProductComponent,
       },
+      {
+    path: 'dashboard',
+    component: DashboardComponent 
+  },
        {
     path: 'vendas',
     component: SalesComponent,

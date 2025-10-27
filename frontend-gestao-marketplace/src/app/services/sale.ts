@@ -2,62 +2,84 @@
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators'; // map adicionado
 
-// Importa as interfaces
-import { SaleRequestDTO } from '../interfaces/sale-request'; // Ajuste o nome se necessário
-import { SaleResponse } from '../interfaces/sale-response'; // Ajuste o nome se necessário
+// Importa as interfaces necessárias
+import { SaleRequestDTO } from '../interfaces/sale-request';
+import { SaleResponse} from '../interfaces/sale-response'; // ISaleResponse (individual)
+import { ISalesResponse } from '../interfaces/sales-response';   // ISalesResponse (lista)
 
-// Importa seu serviço de autenticação (apenas se precisar checar login ANTES)
-import { UserAuthService } from './user-auth'; 
+// (Removido UserAuthService pois o interceptor cuida do token)
 
 @Injectable({
   providedIn: 'root'
 })
 export class SaleService {
-  
-  private readonly _httpClient = inject(HttpClient);
-  // Não precisamos mais do _authService aqui se o interceptor cuida do token
-  // private readonly _authService = inject(UserAuthService); 
 
-  private readonly _apiUrl = 'http://localhost:3000/api/sales';
+  private readonly _httpClient = inject(HttpClient);
+  private readonly _apiUrl = 'http://localhost:3000/api/sales'; // URL base para vendas
 
   /**
    * Cria uma nova venda.
-   * Chama o endpoint POST /api/sales (protegido pelo interceptor).
+   * Envia dados para POST /api/sales.
+   * O interceptor adiciona o token.
+   * Retorna o objeto da venda criada diretamente.
    */
   createSale(saleRequest: SaleRequestDTO): Observable<SaleResponse> {
-    // Não precisa checar token aqui se a rota é protegida e o interceptor funciona
-    // const token = this._authService.getUserToken(); 
-    // if (!token) return throwError(() => new Error('Usuário não autenticado...'));
-    
-    // Não precisa de headers manuais
+    // A API POST retorna o objeto SaleResponse diretamente (sem {message, data})
     return this._httpClient.post<SaleResponse>(this._apiUrl, saleRequest)
       .pipe(
-        catchError(this.handleError) 
+        catchError(this.handleError) // Aplica tratamento de erro
       );
   }
 
   /**
-   * Trata os erros que vêm do Backend
+   * Lista todas as vendas registradas.
+   * Chama GET /api/sales.
+   * O interceptor adiciona o token.
+   * Retorna um array com todas as vendas.
+   */
+  listSales(): Observable<SaleResponse[]> {
+    // A API GET retorna { message: '...', data: [...] }
+    return this._httpClient.get<ISalesResponse>(this._apiUrl)
+      .pipe(
+        map(response => response.data || []), // Extrai o array 'data', retorna [] se não vier
+        catchError(this.handleError) // Aplica tratamento de erro
+      );
+  }
+
+
+  /**
+   * Trata erros HTTP que podem ocorrer nas chamadas de venda/listagem.
+   * Retorna um Observable de erro com uma mensagem amigável.
    */
   private handleError(error: HttpErrorResponse): Observable<never> {
-    let errorMessage = 'Ocorreu um erro desconhecido ao processar a venda.';
-    
+    let errorMessage = 'Ocorreu um erro desconhecido ao processar sua solicitação.';
+
     if (error.error instanceof ErrorEvent) {
-      errorMessage = `Erro do cliente: ${error.error.message}`;
+      // Erro de rede ou do lado do cliente
+      errorMessage = `Erro de cliente/rede: ${error.error.message}`;
     } else {
-      // Pega a mensagem específica do backend (ex: estoque insuficiente)
+      // Erro retornado pelo backend
       if (error.status === 400 && error.error.message) {
-        errorMessage = error.error.message; 
+        // Erro de validação ou regra de negócio (ex: estoque insuficiente)
+        errorMessage = error.error.message;
       } else if (error.status === 401 || error.status === 403) {
-        errorMessage = 'Acesso não autorizado para vendas. Verifique seu login.';
-      } else {
-        errorMessage = `Erro ${error.status} ao processar venda. Verifique a conexão.`;
+        // Erro de autenticação/autorização
+        errorMessage = 'Acesso não autorizado. Verifique seu login ou permissões.';
+      } else if (error.error && error.error.message) {
+         // Outros erros com mensagem específica do backend
+         errorMessage = `Erro do servidor: ${error.error.message}`;
+      }
+       else {
+        // Erros genéricos do servidor
+        errorMessage = `Erro ${error.status} no servidor. Tente novamente mais tarde.`;
       }
     }
-    
-    console.error('Erro no SaleService:', errorMessage, error);
+
+    // Loga o erro detalhado no console para depuração
+    console.error('Erro interceptado no SaleService:', errorMessage, error);
+    // Retorna o erro para o componente que chamou o serviço
     return throwError(() => new Error(errorMessage));
   }
 }

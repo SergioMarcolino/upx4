@@ -1,6 +1,6 @@
 // Em src/routes/sales-routes.ts
 import { Router } from 'express';
-import { createSaleController } from '../controllers/saleController';
+import { createSaleController, getSales } from '../controllers/saleController';
 import { authenticateToken } from '../middleware/auth'; // Importa seu middleware
 
 const router = Router();
@@ -8,6 +8,8 @@ const router = Router();
 // POST /api/sales
 // Vamos proteger esta rota. Apenas usuários logados podem vender.
 router.post('/', authenticateToken, createSaleController);
+
+router.get('/', authenticateToken, getSales);
 
 // (Aqui também podemos adicionar a rota do relatório de lucro no futuro)
 

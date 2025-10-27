@@ -1,3 +1,4 @@
+
 export interface SaleItemResponse {
   id: number;
   productId: number;
