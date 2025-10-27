@@ -106,6 +106,38 @@ CREATE TABLE SaleItems (
 );
 GO
 
+
+USE FluxaDB;
+GO
+
+-- Concede permissão de LEITURA (SELECT) para o usuário
+GRANT SELECT ON SCHEMA::dbo TO fluxa_app_user; 
+-- Se o usuário não foi criado corretamente antes, use:
+-- CREATE USER fluxa_app_user FOR LOGIN fluxa_app_user; 
+-- GO
+-- GRANT SELECT ON SCHEMA::dbo TO fluxa_app_user; 
+-- GO
+
+-- Concede permissão de ESCRITA (INSERT, UPDATE, DELETE) para o usuário
+GRANT INSERT ON SCHEMA::dbo TO fluxa_app_user;
+GRANT UPDATE ON SCHEMA::dbo TO fluxa_app_user;
+GRANT DELETE ON SCHEMA::dbo TO fluxa_app_user;
+GO
+
+-- Alternativa (Mais Simples): Adicionar às roles db_datareader e db_datawriter
+-- Se os comandos GRANT acima falharem, tente estes:
+-- ALTER ROLE db_datareader ADD MEMBER fluxa_app_user;
+-- GO
+-- ALTER ROLE db_datawriter ADD MEMBER fluxa_app_user;
+-- GO
+
+-- (Opcional) Verifica as permissões concedidas
+-- SELECT dp.name AS UserName, permission_name AS Permission, state_desc AS PermissionStatus
+-- FROM sys.database_permissions AS p
+-- JOIN sys.database_principals AS dp ON p.grantee_principal_id = dp.principal_id
+-- WHERE dp.name = 'fluxa_app_user' AND p.major_id = SCHEMA_ID('dbo');
+-- GO
+
 -- Adicionar índices nas chaves estrangeiras é crucial para performance de relatórios
 CREATE INDEX IX_SaleItems_SaleId ON SaleItems(saleId);
 CREATE INDEX IX_SaleItems_ProductId ON SaleItems(productId);
