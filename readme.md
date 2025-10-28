@@ -77,15 +77,190 @@ O sistema migrou de uma arquitetura simples baseada em arquivos `.json` para um 
 
 ## 🚀 Como Executar o Projeto
 
+Siga estes passos para configurar e rodar o ambiente de desenvolvimento completo.
+
+---
+
 ### 🧩 Pré-requisitos
-Certifique-se de ter instalado:
-- Node.js **v18+**
-- Angular CLI  
+
+Antes de iniciar, instale as seguintes ferramentas:
+
+* **Node.js** (v18 ou superior)
+* **Angular CLI**
+
   ```bash
   npm install -g @angular/cli
+  ```
+* **SQL Server** (Instância local ou remota, ex: SQL Server Express)
+* **SSMS** (SQL Server Management Studio) ou **Azure Data Studio** para gerenciar o banco de dados
 
+---
 
--- Adicionar índices nas chaves estrangeiras é crucial para performance de relatórios
-CREATE INDEX IX_SaleItems_SaleId ON SaleItems(saleId);
-CREATE INDEX IX_SaleItems_ProductId ON SaleItems(productId);
-GO
+### 🗄️ 1. Configuração do Banco de Dados (SQL Server)
+
+1. Abra o **SQL Server Management Studio (SSMS)** e conecte-se ao seu servidor SQL.
+
+2. Crie um novo banco de dados:
+
+   ```sql
+   CREATE DATABASE FluxaDB;
+   ```
+
+3. Execute o script SQL completo (fornecido anteriormente) para criar as tabelas:
+
+   * `Users`
+   * `Suppliers`
+   * `Products`
+   * `StockMovements`
+   * `Sales`
+   * `SaleItems`
+
+4. Crie um novo login para o SQL Server com autenticação SQL:
+
+   ```sql
+   CREATE LOGIN fluxa_app_user WITH PASSWORD = 'SuaSenhaForteAqui';
+   ```
+
+5. Mapeie o login para um usuário dentro do banco e conceda permissões:
+
+   ```sql
+   USE FluxaDB;
+   CREATE USER fluxa_app_user FOR LOGIN fluxa_app_user;
+   EXEC sp_addrolemember 'db_datareader', 'fluxa_app_user';
+   EXEC sp_addrolemember 'db_datawriter', 'fluxa_app_user';
+   ```
+
+---
+
+### ⚙️ 2. Configuração do Backend (`backend-gestao-marketplace`)
+
+1. Navegue até a pasta do backend:
+
+   ```bash
+   cd backend-gestao-marketplace
+   ```
+
+2. Instale as dependências (pode precisar da flag `--legacy-peer-deps` por causa do TypeORM/MSSQL):
+
+   ```bash
+   npm install --legacy-peer-deps
+   ```
+
+3. Crie ou edite o arquivo **`src/config.ts`** com suas credenciais de conexão:
+
+   ```typescript
+   // Em src/config.ts
+
+   // 1. Defina sua chave secreta para JWT
+   export const JWT_SECRET = 'SUA_CHAVE_SECRETA_MUITO_FORTE_AQUI';
+
+   // 2. Defina os dados de conexão do SQL Server
+   const DB_USER = 'fluxa_app_user';     // Usuário que você criou no SQL
+   const DB_PASSWORD = 'SuaSenhaForteAqui'; // Senha que você criou
+
+   export const sqlConfig: MSSQLConfig = {
+     server: 'NOME_DO_SEU_SERVIDOR\\SQLEXPRESS', // Ex: 'DESKTOP-8OAV9DP'
+     database: 'FluxaDB',
+     user: DB_USER,
+     password: DB_PASSWORD,
+     options: {
+       encrypt: false,
+       trustServerCertificate: true,
+     },
+   };
+   ```
+
+4. Execute o servidor de desenvolvimento:
+
+   ```bash
+   npm run dev
+   ```
+
+   Se tudo estiver correto, você verá no console:
+
+   ```
+   [TypeORM] DataSource inicializado com sucesso!
+   🚀 Servidor backend rodando...
+   ```
+
+---
+
+### 💻 3. Configuração do Frontend (`frontend-gestao-marketplace`)
+
+1. Abra um novo terminal e vá até a pasta do frontend:
+
+   ```bash
+   cd ../frontend-gestao-marketplace
+   ```
+
+2. Instale as dependências:
+
+   ```bash
+   npm install
+   ```
+
+3. Execute o servidor de desenvolvimento do Angular:
+
+   ```bash
+   ng serve
+   ```
+
+4. Acesse no navegador:
+   👉 [http://localhost:4200](http://localhost:4200)
+
+---
+
+### 🧭 4. Ordem de Uso
+
+1. Acesse **[http://localhost:4200](http://localhost:4200)**
+2. Crie uma **nova conta** na tela de Registro
+3. Faça **Login**
+4. Cadastre alguns **Fornecedores** (na tela de Fornecedores ou “Novo Fornecedor”)
+5. Cadastre alguns **Produtos**, associando-os aos fornecedores
+6. Vá até a tela de **Vendas (PDV)** e realize algumas vendas
+7. Explore a **Dashboard** para ver os gráficos e métricas atualizados
+8. Gere um **Relatório em PDF** na tela de Produtos ou Financeiro
+
+---
+
+✅ **Dica:**
+Após cada venda, o sistema atualiza automaticamente o **Kardex (movimentação de estoque)** e os **gráficos da Dashboard**, refletindo as informações em tempo real.
+
+---
+
+## 🧠 Arquitetura
+
+```text
+FluxaERP/
+├── backend-gestao-marketplace/
+│   ├── src/
+│   │   ├── config.ts
+│   │   ├── entities/
+│   │   ├── routes/
+│   │   ├── controllers/
+│   │   ├── services/
+│   │   └── app.ts
+│   ├── package.json
+│   └── tsconfig.json
+│
+├── frontend-gestao-marketplace/
+│   ├── src/
+│   │   ├── app/
+│   │   ├── assets/
+│   │   ├── environments/
+│   │   └── main.ts
+│   ├── angular.json
+│   └── package.json
+│
+└── README.md
+```
+
+---
+
+## 🧾 Licença
+
+Este projeto é de uso livre para fins educacionais e comerciais, desde que citada a fonte.
+
+---
+
+**Desenvolvido com ❤️ por [Seu Nome / Equipe Fluxa]**
