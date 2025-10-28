@@ -107,13 +107,101 @@ Antes de iniciar, instale as seguintes ferramentas:
    ```
 
 3. Execute o script SQL completo (fornecido anteriormente) para criar as tabelas:
+```sql
+-- =============================================
+-- Tabela de Usuários (Users)
+-- =============================================
+CREATE TABLE Users (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    email NVARCHAR(255) NOT NULL UNIQUE,
+    password NVARCHAR(255) NOT NULL
+);
+GO
 
-   * `Users`
-   * `Suppliers`
-   * `Products`
-   * `StockMovements`
-   * `Sales`
-   * `SaleItems`
+-- =============================================
+-- Tabela de Fornecedores (Suppliers)
+-- =============================================
+CREATE TABLE Suppliers (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    companyName NVARCHAR(255) NOT NULL,
+    cnpj NVARCHAR(20) NOT NULL UNIQUE,
+    contactName NVARCHAR(255) NULL,
+    phone NVARCHAR(20) NULL
+);
+GO
+
+-- =============================================
+-- Tabela de Produtos (Products)
+-- =============================================
+CREATE TABLE Products (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    title NVARCHAR(255) NOT NULL,
+    description NVARCHAR(MAX) NULL,
+    category NVARCHAR(100) NOT NULL,
+    status NVARCHAR(50) NOT NULL DEFAULT 'anunciado' CHECK (status IN ('anunciado', 'desativado')),
+    imageBase64 NVARCHAR(MAX) NULL,
+    purchase_price DECIMAL(10, 2) NOT NULL CHECK (purchase_price >= 0),
+    sale_price DECIMAL(10, 2) NOT NULL CHECK (sale_price >= 0),
+    quantity INT NOT NULL DEFAULT 0,
+    date DATETIME2(7) NOT NULL DEFAULT GETDATE(),
+    supplierId INT NOT NULL,
+    CONSTRAINT FK_Products_Suppliers FOREIGN KEY (supplierId)
+        REFERENCES Suppliers(id)
+        ON DELETE NO ACTION
+        ON UPDATE CASCADE
+);
+GO
+CREATE INDEX IX_Products_SupplierId ON Products(supplierId);
+GO
+
+-- =============================================
+-- Tabela de Movimentações de Estoque (StockMovements)
+-- =============================================
+CREATE TABLE StockMovements (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    productId INT NOT NULL,
+    type NVARCHAR(50) NOT NULL CHECK (type IN ('SALE', 'PURCHASE', 'INITIAL_ADJUSTMENT', 'MANUAL_ADJUSTMENT')),
+    quantity INT NOT NULL,
+    createdAt DATETIME2(7) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT FK_StockMovements_Products FOREIGN KEY (productId)
+        REFERENCES Products(id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+GO
+CREATE INDEX IX_StockMovements_ProductId ON StockMovements(productId);
+GO
+
+-- =============================================
+-- Tabela de Vendas (Sales)
+-- =============================================
+CREATE TABLE Sales (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    totalAmount DECIMAL(10, 2) NOT NULL CHECK (totalAmount >= 0),
+    createdAt DATETIME2(7) NOT NULL DEFAULT GETDATE()
+);
+GO
+
+-- =============================================
+-- Tabela de Itens da Venda (SaleItems)
+-- =============================================
+CREATE TABLE SaleItems (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    saleId INT NOT NULL,
+    productId INT NOT NULL,
+    quantitySold INT NOT NULL CHECK (quantitySold > 0),
+    pricePerUnit DECIMAL(10, 2) NOT NULL CHECK (pricePerUnit >= 0),
+    costPerUnit DECIMAL(10, 2) NOT NULL CHECK (costPerUnit >= 0),
+    CONSTRAINT FK_SaleItems_Sales FOREIGN KEY (saleId)
+        REFERENCES Sales(id)
+        ON DELETE CASCADE,
+    CONSTRAINT FK_SaleItems_Products FOREIGN KEY (productId)
+        REFERENCES Products(id)
+        ON DELETE NO ACTION
+);
+GO
+```
+
 
 4. Crie um novo login para o SQL Server com autenticação SQL:
 
