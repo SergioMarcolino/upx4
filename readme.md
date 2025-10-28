@@ -61,12 +61,18 @@ O sistema migrou de uma arquitetura simples baseada em arquivos `.json` para um 
 
 ## 🖼️ Screenshots
 
-- Dashboard  
-- Lista de Produtos  
-- Modal de Edição  
-- Tela de Vendas (PDV)  
-- Modal de Relatório  
+- Dashboard
+<img width="1862" height="941" alt="image" src="https://github.com/user-attachments/assets/cf8f4776-545d-4f7a-b52d-8011cdcf4705" />
+- Lista de Produtos
+   <img width="1878" height="941" alt="image" src="https://github.com/user-attachments/assets/e52122f9-2e08-40c0-aa73-45674792c187" />
+- Modal de Edição
+  <img width="1871" height="942" alt="image" src="https://github.com/user-attachments/assets/c3e83f0a-4f70-456e-9e04-334a6561a9bb" />
+- Tela de Vendas (PDV)
+  <img width="1877" height="939" alt="image" src="https://github.com/user-attachments/assets/456346a4-e493-4a51-bc33-764c3ee91f9b" />
+- Modal de Relatório
+  <img width="1878" height="939" alt="image" src="https://github.com/user-attachments/assets/f6313ef4-50f2-49cc-95f2-f109775e0cca" />
 - Geração de PDF  
+<img width="792" height="875" alt="image" src="https://github.com/user-attachments/assets/705c530b-9c5d-4bd0-8027-6f3dbbfb86f9" />
 
 ---
 
