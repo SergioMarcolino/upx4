@@ -72,7 +72,7 @@ O sistema migrou de uma arquitetura simples baseada em arquivos `.json` para um 
 - Modal de Relatório
   <img width="1878" height="939" alt="image" src="https://github.com/user-attachments/assets/f6313ef4-50f2-49cc-95f2-f109775e0cca" />
 - Geração de PDF  
-<img width="792" height="875" alt="image" src="https://github.com/user-attachments/assets/705c530b-9c5d-4bd0-8027-6f3dbbfb86f9" />
+   <img width="792" height="875" alt="image" src="https://github.com/user-attachments/assets/705c530b-9c5d-4bd0-8027-6f3dbbfb86f9" />
 
 ---
 
