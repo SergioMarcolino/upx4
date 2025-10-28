@@ -1,142 +1,84 @@
--- =============================================
--- Tabela de Usuários (Users)
--- =============================================
-CREATE TABLE Users (
-    id INT IDENTITY(1,1) PRIMARY KEY, -- Chave Primária Auto-incremental
-    email NVARCHAR(255) NOT NULL UNIQUE, -- Email único para login
-    password NVARCHAR(255) NOT NULL -- Armazenará o HASH da senha (NUNCA a senha real)
-);
-GO -- Separa os lotes de comandos
+# 📦 Fluxa ERP - Sistema de Gestão de Estoque
 
--- =============================================
--- Tabela de Fornecedores (Suppliers)
--- =============================================
-CREATE TABLE Suppliers (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    companyName NVARCHAR(255) NOT NULL, -- Nome Fantasia
-    cnpj NVARCHAR(20) NOT NULL UNIQUE, -- CNPJ (VARCHAR permite máscara, UNIQUE para não repetir)
-    contactName NVARCHAR(255) NULL, -- Nome do Contato (Opcional)
-    phone NVARCHAR(20) NULL -- Telefone (Opcional)
-);
-GO
+O **Fluxa ERP** é um sistema de gestão completo (Full Stack) focado em **controle de estoque, vendas e fornecedores**.  
+Construído com **Angular 17+** no frontend e **Node.js/Express + TypeORM** no backend, este projeto serve como uma solução moderna para gerenciamento de **pequenos negócios**.
 
--- =============================================
--- Tabela de Produtos (Products)
--- =============================================
-CREATE TABLE Products (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    title NVARCHAR(255) NOT NULL,
-    description NVARCHAR(MAX) NULL, -- NVARCHAR(MAX) para descrições longas
-    category NVARCHAR(100) NOT NULL,
-    status NVARCHAR(50) NOT NULL DEFAULT 'anunciado' CHECK (status IN ('anunciado', 'desativado')), -- Status com valor padrão e restrição
-    imageBase64 NVARCHAR(MAX) NULL, -- Armazena Base64 (Alternativa: VARBINARY(MAX) ou caminho do arquivo)
-    purchase_price DECIMAL(10, 2) NOT NULL CHECK (purchase_price >= 0), -- Preço de Custo >= 0
-    sale_price DECIMAL(10, 2) NOT NULL CHECK (sale_price >= 0), -- Preço de Venda >= 0
-    quantity INT NOT NULL DEFAULT 0, -- Cache do estoque atual (gerenciado pela aplicação)
-    date DATETIME2(7) NOT NULL DEFAULT GETDATE(), -- Data de criação/atualização com valor padrão
-    supplierId INT NOT NULL, -- Chave Estrangeira para Fornecedor
+O sistema migrou de uma arquitetura simples baseada em arquivos `.json` para um **banco de dados relacional robusto (SQL Server)**, garantindo **escalabilidade, segurança e integridade dos dados**.
 
-    -- Define a Chave Estrangeira
-    CONSTRAINT FK_Products_Suppliers FOREIGN KEY (supplierId)
-        REFERENCES Suppliers(id)
-        ON DELETE NO ACTION -- O que fazer se o fornecedor for deletado? (NO ACTION impede deletar fornecedor com produtos)
-        ON UPDATE CASCADE -- Se o ID do fornecedor mudar (raro), atualiza aqui também
-);
-GO
+---
 
--- Adicionar um índice na coluna supplierId pode ser útil para performance
-CREATE INDEX IX_Products_SupplierId ON Products(supplierId);
-GO
+## ✨ Funcionalidades Principais
 
--- =============================================
--- Tabela de Movimentações de Estoque (StockMovements)
--- =============================================
-CREATE TABLE StockMovements (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    productId INT NOT NULL, -- Chave Estrangeira para Produto
-    type NVARCHAR(50) NOT NULL CHECK (type IN ('SALE', 'PURCHASE', 'INITIAL_ADJUSTMENT', 'MANUAL_ADJUSTMENT')), -- Tipo da movimentação com restrição
-    quantity INT NOT NULL, -- Pode ser negativo para saídas
-    createdAt DATETIME2(7) NOT NULL DEFAULT GETDATE(), -- Data/Hora da movimentação
+### 🔐 Autenticação
+- Sistema de **registro e login** de usuários com **JWT (JSON Web Tokens)**.
 
-    -- Define a Chave Estrangeira
-    CONSTRAINT FK_StockMovements_Products FOREIGN KEY (productId)
-        REFERENCES Products(id)
-        ON DELETE CASCADE -- Se o produto for deletado, suas movimentações também são (IMPORTANTE!)
-        ON UPDATE CASCADE -- Se o ID do produto mudar, atualiza aqui
-);
-GO
+### 📊 Dashboard
+- Painel de controle com **KPIs** e **gráficos dinâmicos**.
+- Visualização de **lucro**, **receita**, **top produtos** e **estoque por categoria**.
 
--- Adicionar um índice na coluna productId é essencial para performance
-CREATE INDEX IX_StockMovements_ProductId ON StockMovements(productId);
-GO
+### 📦 Gestão de Produtos
+- CRUD completo: **Criar, Ler, Atualizar e Deletar** produtos.
 
--- =============================================
--- Tabela de Vendas (Sales)
--- =============================================
-CREATE TABLE Sales (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    totalAmount DECIMAL(10, 2) NOT NULL CHECK (totalAmount >= 0), -- Valor total da venda
-    createdAt DATETIME2(7) NOT NULL DEFAULT GETDATE() -- Data/Hora da venda
-    -- Poderia adicionar customerId (FK para uma tabela Customers) aqui no futuro
-);
-GO
+### 🧾 Gestão de Fornecedores
+- CRUD completo de fornecedores.
 
--- =============================================
--- Tabela de Itens da Venda (SaleItems)
--- =============================================
--- Esta tabela normaliza o array 'items' que estava dentro de sales.json
-CREATE TABLE SaleItems (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    saleId INT NOT NULL, -- Chave Estrangeira para Venda
-    productId INT NOT NULL, -- Chave Estrangeira para Produto (o produto vendido)
-    quantitySold INT NOT NULL CHECK (quantitySold > 0), -- Quantidade vendida (sempre positiva aqui)
-    pricePerUnit DECIMAL(10, 2) NOT NULL CHECK (pricePerUnit >= 0), -- Preço de venda unitário (congelado)
-    costPerUnit DECIMAL(10, 2) NOT NULL CHECK (costPerUnit >= 0), -- Custo unitário (congelado)
+### 🏷️ Controle de Estoque (Kardex)
+- **Entrada inicial (INITIAL_ADJUSTMENT)** no cadastro do produto.
+- **Baixa automática (SALE)** ao realizar uma venda.
+- **Validação automática** para impedir vendas de produtos com estoque zerado.
 
-    -- Define as Chaves Estrangeiras
-    CONSTRAINT FK_SaleItems_Sales FOREIGN KEY (saleId)
-        REFERENCES Sales(id)
-        ON DELETE CASCADE, -- Se a venda for deletada, os itens também são
-        -- ON UPDATE CASCADE, -- Não costuma ser necessário para ID auto-incremental
+### 💰 Módulo de Vendas (PDV)
+- Tela de vendas intuitiva com seleção de produtos e finalização da transação.
 
-    CONSTRAINT FK_SaleItems_Products FOREIGN KEY (productId)
-        REFERENCES Products(id)
-        ON DELETE NO ACTION -- Impede deletar um produto que já foi vendido (MUITO IMPORTANTE para histórico!)
-        -- ON UPDATE CASCADE -- Não costuma ser necessário
-);
-GO
+### 📈 Relatórios (BI)
+- Gráficos dinâmicos com filtros de período (**Hoje**, **Mês**, **Ano**).
+- Geração de **relatórios em PDF** detalhados (financeiro e de itens vendidos por mês/ano).
 
+---
 
-USE FluxaDB;
-GO
+## 💻 Tecnologias Utilizadas
 
--- Concede permissão de LEITURA (SELECT) para o usuário
-GRANT SELECT ON SCHEMA::dbo TO fluxa_app_user; 
--- Se o usuário não foi criado corretamente antes, use:
--- CREATE USER fluxa_app_user FOR LOGIN fluxa_app_user; 
--- GO
--- GRANT SELECT ON SCHEMA::dbo TO fluxa_app_user; 
--- GO
+### **Frontend** (`frontend-gestao-marketplace`)
+- Angular 17+ (Standalone Components)
+- TypeScript  
+- Tailwind CSS (UI moderna e responsiva)
+- ng2-charts (wrapper do Chart.js)
+- Heroicons (ícones SVG)
+- date-fns (manipulação de datas)
 
--- Concede permissão de ESCRITA (INSERT, UPDATE, DELETE) para o usuário
-GRANT INSERT ON SCHEMA::dbo TO fluxa_app_user;
-GRANT UPDATE ON SCHEMA::dbo TO fluxa_app_user;
-GRANT DELETE ON SCHEMA::dbo TO fluxa_app_user;
-GO
+### **Backend** (`backend-gestao-marketplace`)
+- Node.js  
+- Express.js (API REST)  
+- TypeScript  
+- TypeORM (ORM para SQL Server)  
+- Microsoft SQL Server  
+- `mssql` (driver Node.js para SQL Server)  
+- `jsonwebtoken` (JWT para autenticação)  
+- `bcrypt` (hash de senhas)  
+- `pdfkit` (geração de relatórios PDF)
 
--- Alternativa (Mais Simples): Adicionar às roles db_datareader e db_datawriter
--- Se os comandos GRANT acima falharem, tente estes:
--- ALTER ROLE db_datareader ADD MEMBER fluxa_app_user;
--- GO
--- ALTER ROLE db_datawriter ADD MEMBER fluxa_app_user;
--- GO
+---
 
--- (Opcional) Verifica as permissões concedidas
--- SELECT dp.name AS UserName, permission_name AS Permission, state_desc AS PermissionStatus
--- FROM sys.database_permissions AS p
--- JOIN sys.database_principals AS dp ON p.grantee_principal_id = dp.principal_id
--- WHERE dp.name = 'fluxa_app_user' AND p.major_id = SCHEMA_ID('dbo');
--- GO
+## 🖼️ Screenshots
+
+- Dashboard  
+- Lista de Produtos  
+- Modal de Edição  
+- Tela de Vendas (PDV)  
+- Modal de Relatório  
+- Geração de PDF  
+
+---
+
+## 🚀 Como Executar o Projeto
+
+### 🧩 Pré-requisitos
+Certifique-se de ter instalado:
+- Node.js **v18+**
+- Angular CLI  
+  ```bash
+  npm install -g @angular/cli
+
 
 -- Adicionar índices nas chaves estrangeiras é crucial para performance de relatórios
 CREATE INDEX IX_SaleItems_SaleId ON SaleItems(saleId);
