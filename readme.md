@@ -263,4 +263,4 @@ Este projeto é de uso livre para fins educacionais e comerciais, desde que cita
 
 ---
 
-**Desenvolvido com ❤️ por [Seu Nome / Equipe Fluxa]**
+**Desenvolvido com ❤️ por [Sergio Marcolino / Equipe Fluxa]**
