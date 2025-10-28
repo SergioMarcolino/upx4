@@ -9,7 +9,7 @@ import { SalesComponent } from './pages/sales/sales';
 import { NewSupplierComponent} from './pages/new-supplier/new-supplier';
 import { SupplierListComponent } from './pages/supplier-list/supplier-list';
 import { DashboardComponent } from './pages/dashboard/dashboard';
-
+import { LandingComponent } from './pages/landing/landing';
 
 export const routes: Routes = [
   {
@@ -19,6 +19,11 @@ export const routes: Routes = [
    {
     path: 'register',
     component: Register,
+  },
+  {
+    path: '', // Rota raiz (ex: localhost:4200/)
+    component: LandingComponent,
+    pathMatch: 'full'
   },
   {
     path: '',

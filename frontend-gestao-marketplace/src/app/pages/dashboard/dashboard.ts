@@ -12,7 +12,7 @@ import {
   isWithinInterval, eachDayOfInterval, eachMonthOfInterval
   // getDay e getMonth não são mais necessários do date-fns
 } from 'date-fns';
-import { ptBR } from 'date-fns/locale'; // Localização para formatação em Português
+import { ptBR } from 'date-fns/locale'; 
 
 // Serviços e Interfaces
 import { ProductService } from '../../services/product';

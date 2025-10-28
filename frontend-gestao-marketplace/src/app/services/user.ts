@@ -9,6 +9,7 @@ import { ILoginSuccessResponse } from '../interfaces/login-success-response';
 import { IRegisterPayload } from '../interfaces/register-payload';
 import { IProductResponse } from '../interfaces/product-response';
 import { map } from 'rxjs/operators';
+import { IRegisterResponse } from '../interfaces/register-response';
 // Assumindo que você tenha uma interface para o sucesso do registro (pode ser a mesma do login ou Auth)
 
 
@@ -30,10 +31,9 @@ export class UserService {
   }
 
   // NOVO MÉTODO: Método de Registro (corrigido para o seu caso)
-  register(payload: IRegisterPayload): Observable<ILoginSuccessResponse> {
-    // Você pode precisar de uma interface de sucesso de registro,
-    // mas ILoginSuccessResponse (que deve ter o token) geralmente serve.
-    return this._httpClient.post<ILoginSuccessResponse>('http://localhost:3000/api/users/register', payload);
+register(payload: IRegisterPayload): Observable<IRegisterResponse> {
+    // Retorna a interface de resposta de registro (sem token)
+    return this._httpClient.post<IRegisterResponse>('http://localhost:3000/api/users/register', payload);
   }
 
   listProducts(): Observable<IProductResponse[]> {

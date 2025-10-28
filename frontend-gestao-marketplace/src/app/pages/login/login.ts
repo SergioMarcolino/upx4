@@ -1,5 +1,3 @@
-// src/app/pages/login/login.ts
-
 import { Component, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { UserService } from '../../services/user'; // Verifique o caminho

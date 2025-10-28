@@ -1,85 +1,111 @@
-<div class="min-h-screen bg-gradient-to-br from-teal-400 to-teal-200 flex items-center justify-center p-4">
-  <div class="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
-    
-    <div class="flex justify-center mb-8">
-      <img class="w-50 h-50" src="fluxa-removebg-preview.png" alt="Fluxa Logo" />
-    </div>
+<div class="min-h-screen flex">
 
-    <div class="text-center mb-8">
-      <h1 class="text-2xl font-bold text-gray-800">Crie sua conta</h1>
-      <p class="text-gray-600 mt-2">Preencha os campos abaixo para se cadastrar</p>
-    </div>
+    <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-400 to-blue-600 items-center justify-center p-12 relative overflow-hidden animate-slideInLeft">
+        
+        <div class="absolute top-[-100px] left-[-100px] w-64 h-64 bg-blue-300 rounded-full opacity-20 filter blur-3xl animate-pulse-slow"></div>
+        <div class="absolute bottom-[50px] right-[50px] w-48 h-48 bg-blue-700 rounded-full opacity-10 filter blur-2xl animate-spin-slow"></div>
 
-    <form [formGroup]="userForm" (ngSubmit)="register()" class="space-y-6">
-      
-      <div>
-        <label class="text-sm font-medium text-gray-700 block mb-2">Nome Completo</label>
-        <input
-          type="text"
-          formControlName="fullName" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
-          placeholder="Seu nome"
-        />
-        @if (userForm.get('fullName')?.touched && userForm.get('fullName')?.hasError('required')) {
-            <p class="text-xs text-red-500 mt-1">O nome completo é obrigatório.</p>
-        }
-      </div>
-
-      <div>
-        <label class="text-sm font-medium text-gray-700 block mb-2">Email</label>
-        <input
-          type="email"
-          formControlName="email" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
-          placeholder="seu.email@empresa.com"
-        />
-        @if (userForm.get('email')?.touched && userForm.get('email')?.invalid) {
-            <p class="text-xs text-red-500 mt-1">O email é obrigatório e deve ser válido.</p>
-        }
-      </div>
-
-      <div>
-        <label class="text-sm font-medium text-gray-700 block mb-2">Senha</label>
-        <input
-          type="password"
-          formControlName="password" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
-          placeholder="Crie sua senha"
-        />
-        @if (userForm.get('password')?.touched && userForm.get('password')?.hasError('required')) {
-            <p class="text-xs text-red-500 mt-1">A senha é obrigatória (mínimo 6 caracteres).</p>
-        }
-      </div>
-
-      <div>
-        <label class="text-sm font-medium text-gray-700 block mb-2">Confirmar Senha</label>
-        <input
-          type="password"
-          formControlName="confirmPassword" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
-          placeholder="Confirme sua senha"
-        />
-        @if (userForm.get('confirmPassword')?.touched && userForm.hasError('passwordMismatch')) {
-            <p class="text-xs text-red-500 mt-1">As senhas não coincidem.</p>
-        }
-      </div>
-
-      <div class="flex items-center">
+        <div class="text-center z-10 animate-fade-in-up">
+            <h2 class="text-5xl font-extrabold text-white leading-tight drop-shadow-lg">
+                Comece a Organizar<br>Seus Projetos Hoje!
+            </h2>
+            <p class="mt-4 text-xl text-blue-100 italic drop-shadow-md">
+                Crie sua conta e experimente o Fluxa.
+            </p>
+            <i class="fas fa-user-plus text-white text-7xl mt-8 opacity-75 animate-bounce-subtle"></i> 
         </div>
-      
-      @if (registerErrorMessage) {
-          <p class="text-center text-red-500 font-medium">
-              {{ registerErrorMessage }}
-          </p>
-      }
+    </div>
 
-      <button
-        type="submit"
-        [disabled]="userForm.invalid" class="w-full bg-gradient-to-r from-teal-400 to-teal-500 text-white py-3 rounded-lg font-medium hover:from-teal-500 hover:to-teal-600 transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50"
-      >
-        Cadastrar
-      </button>
-    </form>
+    <div class="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 bg-gray-50 animate-slideInRight">
+        <div class="w-full max-w-md animate-fade-in">
+            
+            <div class="flex flex-col items-center mb-8">
+                <img class="w-16 h-16 object-contain mb-3 animate-zoom-in" src="fluxa-removebg-preview.png" alt="Fluxa Logo" />
+                <h1 class="text-3xl font-bold text-gray-900 animate-fade-in-up-delay-1">Crie Sua Conta</h1>
+                <p class="text-gray-500 mt-2 text-md animate-fade-in-up-delay-2">Preencha os campos abaixo para se cadastrar.</p>
+            </div>
 
-    <p class="text-center mt-8 text-sm text-gray-600">
-      Já tem uma conta? 
-      <a routerLink="/login" class="text-teal-600 font-medium hover:text-teal-800">Faça Login</a>
-    </p>
-  </div>
+            <form [formGroup]="userForm" (ngSubmit)="register()" class="space-y-4">
+                
+                <div class="animate-fade-in-up-delay-3">
+                    <label class="text-sm font-semibold text-gray-700 block mb-2">Nome Completo</label>
+                    <input
+                        type="text"
+                        formControlName="fullName" 
+                        class="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:outline-none focus:border-blue-500 transition-colors duration-200 focus:scale-[1.005] focus:shadow-md"
+                        placeholder="Seu nome"
+                    />
+                    @if (userForm.get('fullName')?.touched && userForm.get('fullName')?.hasError('required')) {
+                        <p class="text-xs text-red-600 mt-1 animate-fade-in">O nome completo é obrigatório.</p>
+                    }
+                </div>
+
+                <div class="animate-fade-in-up-delay-4">
+                    <label class="text-sm font-semibold text-gray-700 block mb-2">E-mail</label>
+                    <input
+                        type="email"
+                        formControlName="email" 
+                        class="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:outline-none focus:border-blue-500 transition-colors duration-200 focus:scale-[1.005] focus:shadow-md"
+                        placeholder="seu.email@empresa.com"
+                    />
+                    @if (userForm.get('email')?.touched && userForm.get('email')?.invalid) {
+                        <p class="text-xs text-red-600 mt-1 animate-fade-in">O e-mail é obrigatório e deve ser válido.</p>
+                    }
+                </div>
+
+                <div class="animate-fade-in-up-delay-5">
+                    <label class="text-sm font-semibold text-gray-700 block mb-2">Senha</label>
+                    <input
+                        type="password"
+                        formControlName="password" 
+                        class="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:outline-none focus:border-blue-500 transition-colors duration-200 focus:scale-[1.005] focus:shadow-md"
+                        placeholder="Crie sua senha (mín. 6 caracteres)"
+                    />
+                    @if (userForm.get('password')?.touched && userForm.get('password')?.hasError('required')) {
+                        <p class="text-xs text-red-600 mt-1 animate-fade-in">A senha é obrigatória.</p>
+                    }
+                </div>
+
+                <div class="animate-fade-in-up-delay-6">
+                    <label class="text-sm font-semibold text-gray-700 block mb-2">Confirmar Senha</label>
+                    <input
+                        type="password"
+                        formControlName="confirmPassword" 
+                        class="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:outline-none focus:border-blue-500 transition-colors duration-200 focus:scale-[1.005] focus:shadow-md"
+                        placeholder="Confirme sua senha"
+                    />
+                    @if (userForm.get('confirmPassword')?.touched && userForm.hasError('passwordMismatch')) {
+                        <p class="text-xs text-red-600 mt-1 animate-fade-in">As senhas não coincidem.</p>
+                    }
+                </div>
+
+                @if (registerErrorMessage) {
+                    <p class="text-center text-red-700 font-medium bg-red-50 p-3 rounded-lg border border-red-200 mt-4 animate-fade-in">
+                        {{ registerErrorMessage }}
+                    </p>
+                }
+
+                <button
+                    type="submit"
+                    [disabled]="userForm.invalid" 
+                    class="w-full bg-blue-600 text-white py-3 mt-6 rounded-xl font-bold text-lg shadow-lg shadow-blue-500/40 hover:bg-blue-700 transition-all duration-300 transform hover:scale-[1.005] disabled:opacity-50 disabled:shadow-none animate-fade-in-up-delay-7"
+                >
+                    Cadastrar
+                </button>
+            </form>
+
+            <div class="mt-8 animate-fade-in-up-delay-8">
+                <p class="text-center text-gray-500 mb-4 text-sm">Ou cadastre-se com</p>
+                <button class="w-full flex items-center justify-center p-3 border border-gray-300 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition-colors duration-200 shadow-sm transform hover:scale-[1.01]">
+                    <i class="fab fa-google mr-2 text-lg text-blue-500"></i>
+                    Cadastrar com Google
+                </button>
+            </div>
+            
+            <p class="text-center mt-10 text-sm text-gray-600 animate-fade-in-up-delay-9">
+                Já tem uma conta? 
+                <a routerLink="/login" class="text-blue-600 font-bold hover:text-blue-800 transition-colors duration-150">Faça Login</a>
+            </p>
+        </div>
+    </div>
 </div>

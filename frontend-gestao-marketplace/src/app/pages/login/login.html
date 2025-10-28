@@ -1,69 +1,88 @@
-<div class="min-h-screen bg-gradient-to-br from-teal-400 to-teal-200 flex items-center justify-center p-4">
-  <div class="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
-    
-    <div class="flex justify-center mb-8">
-      <img class="w-50 h-50" src="fluxa-removebg-preview.png" alt="Fluxa Logo" />
+<div class="min-h-screen flex">
+
+    <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-400 to-blue-600 items-center justify-center p-12 relative overflow-hidden">
+        
+        <div class="absolute top-[-100px] left-[-100px] w-64 h-64 bg-blue-300 rounded-full opacity-20 filter blur-3xl"></div>
+        <div class="absolute bottom-[50px] right-[50px] w-48 h-48 bg-blue-700 rounded-full opacity-10 filter blur-2xl"></div>
+
+        <div class="text-center z-10">
+            <h2 class="text-5xl font-extrabold text-white leading-tight drop-shadow-lg">
+                Gerencie Seus Projetos<br>Com Facilidade
+            </h2>
+            <p class="mt-4 text-xl text-blue-100 italic drop-shadow-md">
+                A plataforma que impulsiona seus resultados.
+            </p>
+            <i class="fas fa-rocket text-white text-7xl mt-8 opacity-75"></i> 
+        </div>
     </div>
 
-    <div class="text-center mb-8">
-      <h1 class="text-2xl font-bold text-gray-800">Welcome Back</h1>
-      <p class="text-gray-600 mt-2">Entre com seu email e senha para acessar</p>
+    <div class="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12">
+        <div class="w-full max-w-md">
+            
+            <div class="flex flex-col items-center mb-10">
+                <img class="w-16 h-16 object-contain mb-3" src="fluxa-removebg-preview.png" alt="Fluxa Logo" />
+                <h1 class="text-3xl font-bold text-gray-900">Acessar Conta</h1>
+                <p class="text-gray-500 mt-2 text-md">Utilize suas credenciais para continuar.</p>
+            </div>
+
+            <form [formGroup]="userForm" (ngSubmit)="login()" class="space-y-6">
+                
+                <div>
+                    <label class="text-sm font-semibold text-gray-700 block mb-2">E-mail</label>
+                    <input
+                        type="email"
+                        formControlName="email" 
+                        class="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:outline-none focus:border-blue-500 transition-colors duration-200"
+                        placeholder="seu.email@empresa.com"
+                    />
+                    @if (userForm.get('email')?.touched && userForm.get('email')?.invalid) {
+                        <p class="text-xs text-red-600 mt-1">O e-mail é obrigatório e deve ser válido.</p>
+                    }
+                </div>
+
+                <div>
+                    <label class="text-sm font-semibold text-gray-700 block mb-2">Senha</label>
+                    <input
+                        type="password"
+                        formControlName="password" 
+                        class="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:outline-none focus:border-blue-500 transition-colors duration-200"
+                        placeholder="Digite sua senha"
+                    />
+                    @if (userForm.get('password')?.touched && userForm.get('password')?.hasError('required')) {
+                        <p class="text-xs text-red-600 mt-1">A senha é obrigatória.</p>
+                    }
+                    <div class="text-right mt-3">
+                        <a href="#" class="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors duration-150">Esqueceu a senha?</a>
+                    </div>
+                </div>
+
+                @if (loginErrorMessage) {
+                    <p class="text-center text-red-700 font-medium bg-red-50 p-3 rounded-lg border border-red-200 mt-4">
+                        {{ loginErrorMessage }}
+                    </p>
+                }
+
+                <button
+                    type="submit"
+                    [disabled]="userForm.invalid" 
+                    class="w-full bg-blue-600 text-white py-3 mt-8 rounded-xl font-bold text-lg shadow-lg shadow-blue-500/40 hover:bg-blue-700 transition-all duration-300 transform hover:scale-[1.005] disabled:opacity-50 disabled:shadow-none"
+                >
+                    Entrar
+                </button>
+            </form>
+
+            <div class="mt-8">
+                <p class="text-center text-gray-500 mb-4 text-sm">Ou entre rapidamente com</p>
+                <button class="w-full flex items-center justify-center p-3 border border-gray-300 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition-colors duration-200 shadow-sm">
+                    <i class="fab fa-google mr-2 text-lg text-blue-500"></i>
+                    Entrar com Google
+                </button>
+            </div>
+            
+            <p class="text-center mt-12 text-sm text-gray-600">
+                Ainda não tem acesso? 
+                <a routerLink="/register" class="text-blue-600 font-bold hover:text-blue-800 transition-colors duration-150">Cadastre-se</a>
+            </p>
+        </div>
     </div>
-
-    <form [formGroup]="userForm" (ngSubmit)="login()" class="space-y-6">
-      
-      <div>
-        <label class="text-sm font-medium text-gray-700 block mb-2">Email</label>
-        <input
-          type="email"
-          formControlName="email" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
-          placeholder="seu.email@empresa.com"
-        />
-        @if (userForm.get('email')?.touched && userForm.get('email')?.invalid) {
-            <p class="text-xs text-red-500 mt-1">O email é obrigatório e deve ser válido.</p>
-        }
-      </div>
-
-      <div>
-        <label class="text-sm font-medium text-gray-700 block mb-2">Senha</label>
-        <input
-          type="password"
-          formControlName="password" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
-          placeholder="Digite sua senha"
-        />
-        @if (userForm.get('password')?.touched && userForm.get('password')?.hasError('required')) {
-            <p class="text-xs text-red-500 mt-1">A senha é obrigatória.</p>
-        }
-      </div>
-
-      <div class="flex items-center justify-between">
-        <label class="flex items-center">
-          <div class="relative">
-            <input type="checkbox" class="sr-only peer">
-            <div class="w-10 h-5 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-teal-500 after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
-          </div>
-          <span class="ml-3 text-sm text-gray-600">Lembrar-me</span>
-        </label>
-        <a href="#" class="text-sm text-teal-600 hover:text-teal-800">Esqueceu a senha?</a>
-      </div>
-      
-      @if (loginErrorMessage) {
-          <p class="text-center text-red-500 font-medium">
-              {{ loginErrorMessage }}
-          </p>
-      }
-
-      <button
-        type="submit"
-        [disabled]="userForm.invalid" class="w-full bg-gradient-to-r from-teal-400 to-teal-500 text-white py-3 rounded-lg font-medium hover:from-teal-500 hover:to-teal-600 transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50"
-      >
-        Entrar
-      </button>
-    </form>
-
-    <p class="text-center mt-8 text-sm text-gray-600">
-      Não tem uma conta? 
-      <a routerLink="/register" class="text-teal-600 font-medium hover:text-teal-800">Cadastre-se</a>
-    </p>
-  </div>
 </div>
