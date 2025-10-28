@@ -106,7 +106,7 @@ Antes de iniciar, instale as seguintes ferramentas:
    CREATE DATABASE FluxaDB;
    ```
 
-3. Execute o script SQL completo (fornecido anteriormente) para criar as tabelas:
+3. Execute o script SQL completo  para criar as tabelas:
 ```sql
 -- =============================================
 -- Tabela de Usuários (Users)
