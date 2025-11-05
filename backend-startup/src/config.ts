@@ -12,7 +12,7 @@ const DB_PASSWORD = 'sergio'; // 👈 Coloque a senha que você criou
 
 export const sqlConfig: MSSQLConfig = {
 
-  server: 'DESKTOP-8OAV9DP', // Mantenha o nome do servidor
+  server: 'DESKTOP-RNV25CK', // Mantenha o nome do servidor
   database: 'FluxaDB',        
   port: 1433,                 
   // driver: 'msnodesqlv8', // REMOVA ou comente esta linha
