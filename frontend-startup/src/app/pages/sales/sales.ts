@@ -1,23 +1,21 @@
-
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms'; // 👈 Importante para o [(ngModel)]
+import { FormsModule } from '@angular/forms'; 
 import { ProductService } from '../../services/product';
 import { SaleService } from '../../services/sale';
 import { SaleItemDTO, SaleRequestDTO } from '../../interfaces/sale-request';
 import { IProductResponse } from '../../interfaces/product-response';
 
-// Interface interna para ajudar a controlar o formulário
 interface ProductForSale extends IProductResponse {
   quantityToSell: number;
 }
 
 @Component({
   selector: 'app-sales',
-  standalone: true, // Assumindo novo Angular com componentes standalone
+  standalone: true, 
   imports: [
-    CommonModule, // 👈 Importa *ngIf, *ngFor
-    FormsModule   // 👈 Importa [(ngModel)]
+    CommonModule, 
+    FormsModule   
   ],
   templateUrl: './sales.html',
   styleUrls: ['./sales.css']
@@ -29,8 +27,8 @@ export class SalesComponent implements OnInit {
   private saleService = inject(SaleService);
 
   // Listas
-  allProducts: ProductForSale[] = []; // Lista de todos os produtos da loja
-  cart: SaleItemDTO[] = [];           // O "carrinho" da venda atual
+  allProducts: ProductForSale[] = []; 
+  cart: SaleItemDTO[] = [];           
 
   // Estado da UI
   isLoading = false;
@@ -41,9 +39,7 @@ export class SalesComponent implements OnInit {
     this.loadProducts();
   }
 
-  /**
-   * Busca todos os produtos da API
-   */
+
   loadProducts(): void {
     this.isLoading = true;
     this.errorMessage = null;
@@ -53,7 +49,7 @@ export class SalesComponent implements OnInit {
       next: (products) => {
         this.allProducts = products.map(p => ({
           ...p,
-          quantityToSell: 1 // Inicia a quantidade para vender como 1
+          quantityToSell: 1 
         }));
         this.isLoading = false;
       },
@@ -119,13 +115,11 @@ export class SalesComponent implements OnInit {
         this.isLoading = false;
         this.successMessage = `Venda #${saleResponse.id} finalizada! Total: R$ ${saleResponse.totalAmount}`;
         
-        this.cart = [];       // Limpa o carrinho
-        this.loadProducts();  // Recarrega os produtos (para atualizar o estoque)
+        this.cart = [];       
+        this.loadProducts();  
       },
       error: (err: Error) => {
         this.isLoading = false;
-        // O `err.message` virá do `handleError` do SaleService
-        // Ex: "Estoque insuficiente para: Produto X"
         this.errorMessage = err.message; 
       }
     });

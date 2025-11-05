@@ -1,4 +1,3 @@
-// Em src/app/interfaces/product-request.ts
 export interface IProductRequest {
   title: string;
   description: string;

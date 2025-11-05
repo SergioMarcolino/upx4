@@ -1,4 +1,3 @@
-// Em src/app/services/report.ts
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable, throwError, of } from 'rxjs';
@@ -22,7 +21,7 @@ export class ReportService {
   downloadStockFinancialReport(year: number, month: number): Observable<Blob> {
     
     return this._httpClient.get(`${this._apiUrl}/stock-financial/${year}/${month}`, {
-      responseType: 'blob' // 👈 MUITO IMPORTANTE: Diz ao Angular para esperar um arquivo
+      responseType: 'blob' 
     }).pipe(
       catchError(this.handleError)
     );

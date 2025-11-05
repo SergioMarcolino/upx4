@@ -1,11 +1,9 @@
-// Em src/app/pages/new-supplier/new-supplier.component.ts
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { finalize } from 'rxjs';
 
-// Seus Serviços e Interfaces
 import { SupplierService } from '../../services/supplier';
 import { ISupplierRequest } from '../../interfaces/supplier-request';
 
@@ -14,11 +12,11 @@ import { ISupplierRequest } from '../../interfaces/supplier-request';
   standalone: true,
   imports: [
     CommonModule,
-    ReactiveFormsModule, // Para FormGroup
-    RouterModule // Para routerLink no botão Cancelar
+    ReactiveFormsModule, 
+    RouterModule 
   ],
-  templateUrl: './new-supplier.html', // Corrija se necessário
-  styleUrls: ['./new-supplier.css']   // Corrija se necessário
+  templateUrl: './new-supplier.html', 
+  styleUrls: ['./new-supplier.css']   
 })
 export class NewSupplierComponent {
 
@@ -73,10 +71,8 @@ export class NewSupplierComponent {
       .subscribe({
         next: (newSupplier) => {
           this.successMessage = `Fornecedor "${newSupplier.companyName}" cadastrado com sucesso!`;
-          // Limpa o formulário após sucesso
           this.supplierForm.reset(); 
-          // Opcional: Redirecionar para outra página
-          // this.router.navigate(['/suppliers']); // (se criar uma lista de fornecedores)
+
         },
         error: (err) => {
           this.apiErrorMessage = `Erro ao cadastrar: ${err.message}`;

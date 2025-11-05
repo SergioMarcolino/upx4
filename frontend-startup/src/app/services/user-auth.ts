@@ -1,5 +1,3 @@
-// src/app/services/user-auth.ts
-
 import { Injectable } from '@angular/core';
 
 @Injectable({
@@ -26,9 +24,7 @@ export class UserAuthService {
     localStorage.setItem(this.TOKEN_KEY, token);
   }
 
-  /**
-   * Remove o token do LocalStorage (usado no logout).
-   */
+
   removeUserToken(): void {
     localStorage.removeItem(this.TOKEN_KEY);
   }

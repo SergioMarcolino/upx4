@@ -1,43 +1,35 @@
-// Em src/middleware/auth.ts
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { JWTPayload } from '../types';
 
-// Importa a chave secreta do arquivo de configuração centralizado
 import { JWT_SECRET } from '../config';
 
 export const authenticateToken = (req: Request, res: Response, next: NextFunction): void => {
 
-  // Verifica se a chave secreta foi carregada corretamente do config.ts
   if (!JWT_SECRET) {
     console.error("ERRO FATAL: JWT_SECRET não definida ou vazia no arquivo src/config.ts (middleware)");
     res.status(500).json({ error: 'Erro de configuração interna', message: 'O servidor não está configurado corretamente para autenticação.' });
     return;
   } 
 
-  // --- LOGS DE DEBUG ---
-  console.log('\n--- MIDDLEWARE ---'); // Marcador de início
-  // --- FIM LOGS DE DEBUG ---
 
-  // Pega o header 'Authorization'
+  console.log('\n--- MIDDLEWARE ---'); 
+
+
+
   const authHeader = req.headers['authorization'];
 
-  // --- LOG DE DEBUG ---
-  console.log('Authorization Header Recebido:', authHeader); // Log: Mostra o header bruto
-  // --- FIM LOG DE DEBUG ---
 
-  // Tenta extrair o token APÓS "Bearer "
+  console.log('Authorization Header Recebido:', authHeader); 
+
   let token: string | undefined = undefined;
   if (authHeader && authHeader.startsWith('Bearer ')) {
-      token = authHeader.substring(7); // Pega a string a partir do 7º caractere
+      token = authHeader.substring(7); 
   }
 
-  // --- LOGS DE DEBUG ---
-  console.log('Token EXTRAÍDO:', token); // Log: Mostra o token limpo
-  console.log('JWT_SECRET usada para VERIFY:', JWT_SECRET); // Log: Mostra a chave usada para verificar
-  // --- FIM LOGS DE DEBUG ---
+  console.log('Token EXTRAÍDO:', token); 
+  console.log('JWT_SECRET usada para VERIFY:', JWT_SECRET); 
 
-  // Se não houver token ou o formato estiver incorreto
   if (!token) {
     console.log('Middleware: Token não encontrado ou formato inválido no header.'); // Log adicional
     res.status(401).json({
@@ -47,24 +39,20 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
     return;
   }
 
-  // Tenta verificar o token usando a chave secreta importada
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as JWTPayload;
 
     // --- LOG DE DEBUG ---
-    console.log('Token VERIFICADO com sucesso:', decoded); // Log: Mostra o payload se válido
-    // --- FIM LOG DE DEBUG ---
+    console.log('Token VERIFICADO com sucesso:', decoded); 
 
-    req.user = decoded; // Anexa os dados do usuário à requisição
-    next(); // Passa para a próxima etapa (controller)
+    req.user = decoded; 
+    next(); 
 
-  } catch (error: any) { // Captura qualquer erro da verificação
+  } catch (error: any) { 
 
-    // --- LOG DE DEBUG ---
-    console.error('ERRO na verificação JWT:', error.name, '-', error.message); // Log: Mostra detalhes do erro JWT
-    // --- FIM LOG DE DEBUG ---
 
-    // Verifica se o erro é de token expirado
+    console.error('ERRO na verificação JWT:', error.name, '-', error.message); 
+
     if (error instanceof jwt.TokenExpiredError) {
       res.status(401).json({
         error: 'Token expirado',
@@ -73,7 +61,6 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
       return;
     }
 
-    // Verifica se o erro é de token inválido (assinatura errada, malformado, etc.)
     if (error instanceof jwt.JsonWebTokenError) {
       res.status(403).json({
         error: 'Token inválido',
@@ -82,7 +69,6 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
       return;
     }
 
-    // Se for outro tipo de erro durante a verificação
     console.error("Erro desconhecido na validação do token:", error);
     res.status(500).json({
       error: 'Erro interno do servidor',

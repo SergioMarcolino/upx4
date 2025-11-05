@@ -1,14 +1,12 @@
-// Em src/controllers/reports-controller.ts
 import { Request, Response } from 'express';
 import { ReportService } from '../services/reportService';
-import PDFDocument from 'pdfkit'; // Importa o PDFKit
-import { format, parseISO } from 'date-fns'; // Para formatar datas no PDF
+import PDFDocument from 'pdfkit'; 
+import { format, parseISO } from 'date-fns'; 
 import { ptBR } from 'date-fns/locale';
-import { SaleItem } from '../entities/SaleItem'; // Importa o tipo SaleItem se necessário
+import { SaleItem } from '../entities/SaleItem'; 
 
 const reportService = new ReportService();
 
-// --- Função Helper para desenhar linhas da tabela ---
 function generateTableRow(
   doc: PDFKit.PDFDocument,
   y: number, // Posição Y da linha

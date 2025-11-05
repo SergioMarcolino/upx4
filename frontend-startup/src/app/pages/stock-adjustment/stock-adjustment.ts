@@ -1,4 +1,3 @@
-// Em src/app/pages/stock-adjustment/stock-adjustment.component.ts
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -24,11 +23,11 @@ export class StockAdjustmentComponent implements OnInit {
 
   // Estado
   adjustmentForm: FormGroup;
-  isLoading = false; // Flag para o botão "Confirmar"
-  isProductsLoading = true; // Flag para o dropdown de produtos
+  isLoading = false; 
+  isProductsLoading = true; 
   apiErrorMessage: string | null = null;
   successMessage: string | null = null;
-  products$: Observable<IProductResponse[]>; // Observable para a lista de produtos
+  products$: Observable<IProductResponse[]>; 
 
   constructor() {
     this.adjustmentForm = this.fb.group({
@@ -36,7 +35,7 @@ export class StockAdjustmentComponent implements OnInit {
       quantity: [null, [Validators.required, Validators.min(1)]], 
       reason: [''] // Opcional
     });
-    this.products$ = of([]); // Inicializa com um Observable vazio
+    this.products$ = of([]); 
   }
 
   ngOnInit(): void {

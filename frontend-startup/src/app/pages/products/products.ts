@@ -1,5 +1,3 @@
-// src/app/pages/products/products.component.ts
-
 import { Component, inject, OnInit, Renderer2 } from '@angular/core';
 import { CommonModule, NgClass, DatePipe, DecimalPipe } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
@@ -179,7 +177,7 @@ export class ProductsComponent implements OnInit {
   openEditModal(product: IProductResponse): void {
   	this.editingProduct = product;
     this.editProductForm.patchValue(product);
-  	this.isClosing = false; // Garante que a flag de saída está resetada
+  	this.isClosing = false; 
     this.isEditModalOpen = true; 
   	this.apiEditErrorMessage = null; 
   	this.renderer.addClass(document.body, 'modal-open'); 
@@ -227,7 +225,7 @@ export class ProductsComponent implements OnInit {
       this.renderer.removeClass(document.body, 'modal-open');
       this.editProductForm.reset();
       this.isSaving = false;
-    }, 300); // 300ms = tempo da animação
+    }, 300); 
   }
   
   // --- Função CRUD (Delete) ---

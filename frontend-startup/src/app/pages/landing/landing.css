@@ -1,6 +1,4 @@
-/* Em src/app/pages/landing/landing.component.css */
 
-/* Define as animações de entrada */
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -17,14 +15,7 @@
   }
 }
 
-/* Aplica as animações aos elementos do HTML.
-  'animation-fill-mode: both' garante que o elemento permaneça 
-  invisível (opacity: 0) antes da animação começar.
-*/
-
-/* --- Animações do Hero --- */
 .hero-title {
-  /* Duração, tipo, delay, preenchimento */
   animation: fadeInUp 0.8s ease-out 0.1s both;
 }
 
@@ -40,22 +31,15 @@
   animation: fadeIn 1s ease-out 0.6s both;
 }
 
-/* --- Animações das Seções (para quando rolar) --- */
-/* NOTA: Esta é uma animação simples na carga. 
-  Para animar ao "scrollar", precisaríamos de um Intersection Observer.
-  Por enquanto, vamos animar todos os cards com um pequeno delay.
-*/
 .feature-card {
   animation: fadeInUp 0.6s ease-out both;
 }
 
-/* Atraso escalonado para os cards de funcionalidade */
 .feature-card:nth-child(1) { animation-delay: 0.2s; }
 .feature-card:nth-child(2) { animation-delay: 0.3s; }
 .feature-card:nth-child(3) { animation-delay: 0.4s; }
 .feature-card:nth-child(4) { animation-delay: 0.5s; }
 
-/* Animação para os passos "Como Funciona" */
 .how-it-works-step {
    animation: fadeInUp 0.6s ease-out both;
 }

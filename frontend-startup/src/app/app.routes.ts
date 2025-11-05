@@ -22,7 +22,7 @@ export const routes: Routes = [
     component: Register,
   },
   {
-    path: '', // Rota raiz (ex: localhost:4200/)
+    path: '', 
     component: LandingComponent,
     pathMatch: 'full'
   },

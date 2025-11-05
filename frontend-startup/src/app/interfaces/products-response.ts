@@ -1,7 +1,7 @@
-// Define a estrutura da resposta da API ao listar produtos
-import { IProductResponse } from "./product-response"; // Garanta que usa a interface atualizada
+
+import { IProductResponse } from "./product-response"; 
 
 export interface IProductsResponse {
   message: string;
-  data: IProductResponse[]; // Array de produtos
+  data: IProductResponse[]; 
 }

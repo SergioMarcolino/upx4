@@ -1,19 +1,15 @@
-// Em src/app/directives/scroll-fade-in.directive.ts
 import { Directive, ElementRef, inject, OnInit, OnDestroy, Input } from '@angular/core';
 
 @Directive({
-  selector: '[appScrollFadeIn]', // Como vamos usar a diretiva: <div appScrollFadeIn>
+  selector: '[appScrollFadeIn]', 
   standalone: true
 })
 export class ScrollFadeInDirective implements OnInit, OnDestroy {
 
-  // Injeta a referência ao elemento HTML onde a diretiva foi colocada
   private element = inject(ElementRef); 
   private observer: IntersectionObserver | null = null;
 
-  // Input opcional para definir um delay (ex: [delay]="100")
   @Input() delay: string = '0s'; 
-  // Input opcional para definir a distância (ex: [translateY]="20")
   @Input() translateY: string = '20px'; 
 
   ngOnInit(): void {
@@ -21,7 +17,6 @@ export class ScrollFadeInDirective implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    // Limpa o observer quando o componente é destruído
     if (this.observer) {
       this.observer.disconnect();
     }
@@ -36,19 +31,17 @@ export class ScrollFadeInDirective implements OnInit, OnDestroy {
     el.style.transitionDelay = this.delay;
 
     const options = {
-      root: null, // Observa em relação ao viewport principal
+      root: null, 
       rootMargin: '0px',
-      threshold: 0.1 // Dispara quando 10% do elemento está visível
+      threshold: 0.1 
     };
 
     this.observer = new IntersectionObserver((entries, obs) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
-          // O elemento entrou na tela! Aplica o estado final (visível)
           el.style.opacity = '1';
           el.style.transform = 'translateY(0px)';
 
-          // Para de observar este elemento (a animação só acontece uma vez)
           obs.unobserve(el); 
         }
       });

@@ -1,7 +1,6 @@
-// Em src/entities/SaleItem.ts
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { Sale } from './Sale';       // Importa a entidade Sale (Pai)
-import { Product } from './Product'; // Importa a entidade Product (Referenciada)
+import { Sale } from './Sale';       
+import { Product } from './Product'; 
 
 @Entity('SaleItems')
 export class SaleItem {
@@ -9,32 +8,30 @@ export class SaleItem {
     @PrimaryGeneratedColumn()
     id!: number;
 
-    // --- Relacionamento Muitos-para-Um com Sale ---
-    @Column() // Coluna que armazena a FK para Sales.id
+    @Column() 
     saleId!: number;
 
     @ManyToOne(() => Sale, (sale) => sale.items, {
-        onDelete: 'CASCADE' // Se a Sale for deletada, este item também é
+        onDelete: 'CASCADE' 
     })
-    @JoinColumn({ name: 'saleId' }) // Especifica o nome da coluna FK
-    sale!: Sale; // Propriedade para acessar a Venda pai
+    @JoinColumn({ name: 'saleId' }) 
+    sale!: Sale; 
 
-    // --- Relacionamento Muitos-para-Um com Product ---
-    @Column() // Coluna que armazena a FK para Products.id
+    @Column() 
     productId!: number;
 
     @ManyToOne(() => Product, (product) => product.saleItems, {
-        onDelete: 'NO ACTION' // Impede deletar um Product se ele estiver em SaleItems
+        onDelete: 'NO ACTION' 
     })
-    @JoinColumn({ name: 'productId' }) // Especifica o nome da coluna FK
-    product!: Product; // Propriedade para acessar o Produto vendido
+    @JoinColumn({ name: 'productId' }) 
+    product!: Product; 
 
     @Column({ type: 'int' })
     quantitySold!: number;
 
     @Column({ type: 'decimal', precision: 10, scale: 2 })
-    pricePerUnit!: number; // Preço de venda congelado
+    pricePerUnit!: number; 
 
     @Column({ type: 'decimal', precision: 10, scale: 2 })
-    costPerUnit!: number; // Custo congelado
+    costPerUnit!: number; 
 }

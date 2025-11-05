@@ -9,9 +9,7 @@ html {
 body {
   background-color: #FBF4F4;
 }
-/* Em src/styles.css */
 
-/* Animações para o Modal */
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }

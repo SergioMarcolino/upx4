@@ -1,4 +1,3 @@
-// Em src/app/services/sale.ts
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';

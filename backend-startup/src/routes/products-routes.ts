@@ -1,5 +1,4 @@
 import { Router } from 'express';
-// 👇 1. Importe as funções que faltam do controller
 import { 
     createProduct, 
     getProducts, 

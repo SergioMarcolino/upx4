@@ -1,8 +1,7 @@
-// Em src/entities/Product.ts
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
-import { Supplier } from './Supplier'; // Importa a entidade relacionada
-import { StockMovement } from './StockMovement'; // Importa StockMovement (criaremos depois)
-import { SaleItem } from './SaleItem'; // Importa SaleItem (criaremos depois)
+import { Supplier } from './Supplier'; 
+import { StockMovement } from './StockMovement'; 
+import { SaleItem } from './SaleItem'; 
 
 @Entity('Products')
 export class Product {
@@ -20,7 +19,7 @@ export class Product {
     category!: string;
 
     @Column({ type: 'nvarchar', length: 50, default: 'anunciado' })
-    status!: string; // 'anunciado' | 'desativado' (TypeORM não valida CHECK constraints diretamente)
+    status!: string; 
 
     @Column({ type: 'nvarchar', length: 'MAX', nullable: true })
     imageBase64!: string | null;
@@ -32,23 +31,21 @@ export class Product {
     sale_price!: number;
 
     @Column({ type: 'int', default: 0 })
-    quantity!: number; // Cache do estoque
+    quantity!: number; 
 
-    @Column({ type: 'datetime2', default: () => 'GETDATE()' }) // Usa função SQL para default
-    date!: Date; // TypeORM mapeia datetime2 para o tipo Date do JS
+    @Column({ type: 'datetime2', default: () => 'GETDATE()' }) 
+    date!: Date; 
 
-    // --- Relacionamento com Fornecedor ---
-    @Column() // Coluna que armazena a chave estrangeira
+
+    @Column() 
     supplierId!: number;    
 
     @ManyToOne(() => Supplier, (supplier) => supplier.products, {
-         // onDelete: 'NO ACTION', // Comportamento FK (gerenciado pelo DB)
-         // onUpdate: 'CASCADE' 
-    })
-    @JoinColumn({ name: 'supplierId' }) // Especifica qual coluna desta entidade é a FK
-    supplier!: Supplier; // Propriedade para acessar o objeto Supplier relacionado
 
-    // --- Relacionamentos Inversos (Opcional) ---
+    })
+    @JoinColumn({ name: 'supplierId' }) 
+    supplier!: Supplier; 
+
     @OneToMany(() => StockMovement, (movement) => movement.product)
     stockMovements!: StockMovement[];
 

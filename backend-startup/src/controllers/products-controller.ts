@@ -1,4 +1,3 @@
-// Em src/controllers/products-controller.ts
 import { Request, Response } from 'express';
 import { AppDataSource } from '../data-source';
 import { Product } from '../entities/Product'; // Importa a ENTIDADE Product

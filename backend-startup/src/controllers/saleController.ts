@@ -1,10 +1,8 @@
-// Em src/controllers/saleController.ts
 import { Request, Response } from 'express';
-import { SaleService } from '../services/saleService'; // Importa o SaleService REFATORADO
-import { SaleRequestDTO } from '../types'; // Importa DTO
-// import { db } from '../repository'; // REMOVA esta linha (não usamos mais repository.ts)
-import { Sale } from '../entities/Sale'; // Importar a ENTIDADE Sale
-import { AppDataSource } from '../data-source'; // 👈 IMPORTAÇÃO ADICIONADA
+import { SaleService } from '../services/saleService'; 
+import { SaleRequestDTO } from '../types'; 
+import { Sale } from '../entities/Sale'; 
+import { AppDataSource } from '../data-source'; 
 
 // Instancia o serviço UMA VEZ
 const saleService = new SaleService();

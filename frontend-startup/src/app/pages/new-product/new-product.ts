@@ -1,4 +1,3 @@
-// Em src/app/pages/new-product/new-product.component.ts
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -6,10 +5,10 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Observable, of, finalize, catchError } from 'rxjs';
 
 // Seus Serviços e Interfaces
-import { ProductService } from '../../services/product'; // Importa IProductRequest
+import { ProductService } from '../../services/product'; 
 import { SupplierService } from '../../services/supplier';
 import { ISupplierResponse } from '../../interfaces/supplier-response';
-import { IProductRequest } from '../../interfaces/product-request'; // Correto
+import { IProductRequest } from '../../interfaces/product-request'; 
 
 @Component({
   selector: 'app-new-product',
@@ -29,13 +28,13 @@ export class NewProductComponent implements OnInit {
   private fb = inject(FormBuilder);
   private route = inject(ActivatedRoute);
   private productService = inject(ProductService);
-  private supplierService = inject(SupplierService); // Injetar SupplierService
+  private supplierService = inject(SupplierService); 
   private router = inject(Router);
   private datePipe = inject(DatePipe);
 
   // Estado do Componente
   public productForm: FormGroup;
-  public suppliers$: Observable<ISupplierResponse[]> = of([]); // Observable para suppliers
+  public suppliers$: Observable<ISupplierResponse[]> = of([]); 
   public isEditing = false;
   private currentProductId: number | null = null;
   public pageTitle = "Adicionar Produto";
@@ -43,17 +42,17 @@ export class NewProductComponent implements OnInit {
   public apiErrorMessage: string | null = null;
 
   constructor() {
-    // Inicializa o formulário reativo com supplierId
+
     this.productForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(3)]],
-      supplierId: [null, [Validators.required]], // Alterado para supplierId
+      supplierId: [null, [Validators.required]], 
       category: ['', [Validators.required]],
       purchase_price: [null, [Validators.required, Validators.min(0)]],
       sale_price: [null, [Validators.required, Validators.min(0)]],
       quantity: [null, [Validators.required, Validators.min(0)]],
-      date: ['', [Validators.required]], // Validação de data
+      date: ['', [Validators.required]], 
       description: ['', [Validators.required, Validators.minLength(10)]],
-      imageBase64: ['', [Validators.required]] // Imagem é obrigatória inicialmente
+      imageBase64: ['', [Validators.required]] 
     });
   }
 

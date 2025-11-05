@@ -1,9 +1,8 @@
-// Em src/controllers/suppliers-controller.ts
 import { Request, Response } from 'express';
-import { AppDataSource } from '../data-source'; // 👈 Importar AppDataSource
-import { Supplier } from '../entities/Supplier'; // 👈 Importar a Entidade
+import { AppDataSource } from '../data-source'; 
+import { Supplier } from '../entities/Supplier'; 
 import { SupplierRequest } from '../types';
-import { QueryFailedError } from 'typeorm'; // Para tratar erros específicos do DB
+import { QueryFailedError } from 'typeorm'; 
 
 // Obtém o repositório para a entidade Supplier
 const supplierRepository = AppDataSource.getRepository(Supplier);

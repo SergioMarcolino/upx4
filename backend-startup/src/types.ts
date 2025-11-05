@@ -1,13 +1,9 @@
-// Em src/types.ts
-
-// Define ProductStatus type if not already defined
 export type ProductStatus = "vendido" | "desativado" | "anunciado";
 
-// --- AUTENTICAÇÃO E USUÁRIO ---
 export interface User {
   id: number;
   email: string;
-  password: string; // Hash da senha, não a senha real
+  password: string; 
 }
 
 export interface LoginRequest {
@@ -43,16 +39,14 @@ export interface JWTPayload {
   exp?: number;
 }
 
-// --- FORNECEDORES (NOVO) ---
 export interface Supplier {
   id: number;
-  companyName: string; // Nome Fantasia
-  cnpj: string;        // CNPJ (como string para formatação)
-  contactName?: string; // Nome do contato (opcional)
-  phone?: string;       // Telefone (opcional)
+  companyName: string; 
+  cnpj: string;        
+  contactName?: string; 
+  phone?: string;       
 }
 
-// Interface para criar um novo fornecedor (sem ID)
 export interface SupplierRequest {
   companyName: string;
   cnpj: string;
@@ -61,7 +55,6 @@ export interface SupplierRequest {
 }
 
 
-// --- PRODUTOS (MODIFICADO) ---
 export interface Product {
   id: number;
   title: string;
@@ -71,79 +64,72 @@ export interface Product {
   imageBase64: string;
   purchase_price: number;
   sale_price: number;
-  quantity: number;       // <-- Cache do Estoque Atual
+  quantity: number;       
   date: string;
-  supplierId: number;     // <-- ID do Fornecedor (Chave Estrangeira)
+  supplierId: number;    
 }
 
-export interface ProductRequest { // Usado para Criar Produto
+export interface ProductRequest { 
   title: string;
   description: string;
   category: string;
   imageBase64: string;
   purchase_price: number;
   sale_price: number;
-  quantity: number;       // <-- Estoque Inicial
-  supplierId: number;     // <-- ID do Fornecedor é obrigatório ao criar
-  // 'date' e 'status' são definidos pelo backend ao criar
+  quantity: number;       
+  supplierId: number;     
 }
 
-// --- VENDAS ---
+
 export interface SaleItem {
   id: number;
   productId: number;
   quantitySold: number;
-  pricePerUnit: number; // Preço de Venda (congelado)
-  costPerUnit: number;  // Custo de Compra (congelado)
+  pricePerUnit: number; 
+  costPerUnit: number;  
 }
 
 export interface Sale {
   id: number;
   totalAmount: number;
-  createdAt: string; // ISO String Date
-  items: SaleItem[]; // Lista de itens vendidos
+  createdAt: string; 
+  items: SaleItem[]; 
 }
 
-// --- ESTOQUE ---
 export enum MovementType {
   SALE = "SALE",
-  PURCHASE = "PURCHASE", // Para futuras entradas via Compra
-  INITIAL_ADJUSTMENT = "INITIAL_ADJUSTMENT", // Ao criar o produto
-  MANUAL_ADJUSTMENT = "MANUAL_ADJUSTMENT" // Para ajustes manuais (futuro)
+  PURCHASE = "PURCHASE", 
+  INITIAL_ADJUSTMENT = "INITIAL_ADJUSTMENT", 
+  MANUAL_ADJUSTMENT = "MANUAL_ADJUSTMENT" 
 }
 
 export interface StockMovement {
   id: number;
   productId: number;
   type: MovementType;
-  quantity: number; // Negativo para saída (venda), Positivo para entrada
-  createdAt: string; // ISO String Date
+  quantity: number; 
+  createdAt: string; 
 }
 
-// --- DTOs (Data Transfer Objects) para a API ---
 
-// O que o Frontend (Angular) envia para criar uma venda
 export interface SaleRequestDTO {
   items: Array<{
     productId: number;
     quantity: number;
   }>;
-  // customerId?: number; // (Opcional)
 }
 
-// O que a API de Relatório de Lucro (futura) pode responder
 export interface ProfitReportDTO {
-  totalRevenue: number; // Faturamento total
-  totalCost: number;    // Custo total
-  totalProfit: number;  // Lucro total
+  totalRevenue: number; 
+  totalCost: number;    
+  totalProfit: number;  
 }
 
 
-// --- TIPAGEM EXPRESS (Para req.user) ---
 declare global {
   namespace Express {
     interface Request {
-      user?: JWTPayload; // Adiciona a propriedade 'user' opcional ao Request
+      user?: JWTPayload; 
     }
   }
 }

@@ -1,16 +1,14 @@
-// Em src/app/pages/dashboard/dashboard.component.ts
 import { Component, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common'; // Inclui pipes comuns e diretivas
+import { CommonModule } from '@angular/common'; 
 import { RouterModule } from '@angular/router';
-import { BaseChartDirective } from 'ng2-charts'; // Diretiva para renderizar gráficos
-import { ChartConfiguration, ChartData, ChartType, TooltipItem } from 'chart.js'; // Tipos do Chart.js
+import { BaseChartDirective } from 'ng2-charts'; 
+import { ChartConfiguration, ChartData, ChartType, TooltipItem } from 'chart.js'; 
 import { forkJoin, of, Observable } from 'rxjs';
 import { catchError, finalize, map, tap } from 'rxjs/operators';
-// Funções do date-fns para manipulação de datas
 import {
   format, parseISO, startOfDay, endOfDay, startOfMonth, endOfMonth, startOfYear, endOfYear,
   isWithinInterval, eachDayOfInterval, eachMonthOfInterval
-  // getDay e getMonth não são mais necessários do date-fns
+
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale'; 
 
@@ -43,12 +41,12 @@ interface DashboardTotals {
   selector: 'app-dashboard',
   standalone: true,
   imports: [
-    CommonModule, // Fornece @if, @for, async pipe, currency pipe, number pipe
+    CommonModule, 
     RouterModule,
-    DashboardCardComponent, // Componente de Card
-    BaseChartDirective    // Diretiva ng2-charts
+    DashboardCardComponent, 
+    BaseChartDirective    
   ],
-  // providers: [], // Pipes comuns já vêm com CommonModule
+
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.css']
 })
@@ -63,8 +61,8 @@ export class DashboardComponent implements OnInit {
   isLoading = true;
   errorMessage: string | null = null;
   totals: DashboardTotals | null = null;
-  private allSalesData: SaleResponse[] = []; // Armazena todas as vendas para filtragem
-  private allProductsData: IProductResponse[] = []; // Armazena produtos para lookup
+  private allSalesData: SaleResponse[] = []; 
+  private allProductsData: IProductResponse[] = []; 
 
   // Limite para estoque baixo
   readonly LOW_STOCK_THRESHOLD = 10;
@@ -309,17 +307,15 @@ export class DashboardComponent implements OnInit {
 
           let index = -1;
           
-          // 👇 CORREÇÃO LÓGICA APLICADA 👇
           if (this.selectedPeriod === 'month') { 
-            index = saleDate.getDate() - 1; // Usa .getDate() (dia do Mês 1-31)
+            index = saleDate.getDate() - 1; 
           } 
           else if (this.selectedPeriod === 'year') { 
-            index = saleDate.getMonth(); // Usa .getMonth() (mês 0-11)
+            index = saleDate.getMonth(); 
           } 
           else { 
-            index = 0; // 'day' só tem índice 0
+            index = 0; 
           }
-          // 👆 FIM DA CORREÇÃO 👆
 
           if (index >= 0 && index < profitData.length) {
             // Garante que estamos somando números

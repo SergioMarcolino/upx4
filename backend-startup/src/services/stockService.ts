@@ -1,26 +1,18 @@
-// Em src/services/stockService.ts
 import { AppDataSource } from '../data-source';
 import { Product } from '../entities/Product';
 import { StockMovement } from '../entities/StockMovement';
-import { MovementType } from '../types'; // Ou defina o Enum aqui
-import { EntityManager } from 'typeorm'; // Para transações
+import { MovementType } from '../types'; 
+import { EntityManager } from 'typeorm'; 
 
-// Obtém os repositórios fora da classe (padrão comum)
 const productRepository = AppDataSource.getRepository(Product);
 const stockMovementRepository = AppDataSource.getRepository(StockMovement);
 
 export class StockService {
 
-  /**
-   * Adiciona uma movimentação de estoque E ATUALIZA O ESTOQUE NO PRODUTO.
-   * Executa a inserção do movimento e a atualização do produto dentro de uma transação.
-   */
   public async addMovement(productId: number, quantity: number, type: MovementType): Promise<void> {
     console.log(`[StockService TYPEORM] addMovement: pId=${productId}, qty=${quantity}, type=${type}`);
 
-    // Usa o gerenciador de transações do DataSource
     await AppDataSource.manager.transaction(async (transactionalEntityManager: EntityManager) => {
-      // Obtém repositórios específicos da transação
       const productRepoTx = transactionalEntityManager.getRepository(Product);
       const stockMovementRepoTx = transactionalEntityManager.getRepository(StockMovement);
 
@@ -54,19 +46,13 @@ export class StockService {
       // Verifica se o produto foi encontrado e atualizado
       if (updateResult.affected === 0) {
         console.warn(`[StockService TYPEORM WARNING] Produto com ID ${productId} não encontrado durante atualização do cache. Movimento foi salvo, mas estoque não atualizado.`);
-        // Lançar um erro aqui faria a transação inteira dar rollback (movimento não seria salvo)
-        // Decida a melhor estratégia: lançar erro ou apenas logar.
-        // throw new Error(`Produto ${productId} não encontrado para atualizar estoque.`);
+
       } else {
         console.log(`[StockService TYPEORM] Cache de estoque do produto ${productId} atualizado para ${totalStock}`);
       }
 
-      // Se todas as operações acima funcionarem, a transação será commitada automaticamente.
-      // Se qualquer 'await' lançar um erro, a transação dará rollback automaticamente.
     }).catch(error => {
-        // Captura erros da transação
         console.error(`[StockService TYPEORM ERROR] Falha na transação de movimentação para productId ${productId}:`, error);
-        // Re-lança o erro para o chamador (controller) saber que falhou
         throw error;
     });
   }

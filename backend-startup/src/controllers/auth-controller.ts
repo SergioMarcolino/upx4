@@ -1,15 +1,13 @@
-// Em src/controllers/auth-controller.ts
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
-import { AppDataSource } from '../data-source'; // Importa o DataSource
-import { User } from '../entities/User';       // Importa a ENTIDADE User
+import { AppDataSource } from '../data-source'; 
+import { User } from '../entities/User';       
 import { JWT_SECRET } from '../config';
 import { LoginRequest, RegisterRequest, JWTPayload, LoginResponse, RegisterResponse } from '../types';
-import { QueryFailedError } from 'typeorm'; // Para tratar erros específicos
+import { QueryFailedError } from 'typeorm'; 
 
 const SALT_ROUNDS = 10;
-// Obtém o repositório para a entidade User UMA VEZ
 const userRepository = AppDataSource.getRepository(User);
 
 // =======================================================
@@ -22,30 +20,23 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     // --- Validações ---
     if (!email || !password) { /* ... */ return; }
     if (password.length < 6) { /* ... */ return; }
-    // Adicione validação de formato de email se desejar
-    // --- Fim Validações ---
-
-    // Verifica se o email já existe usando o repositório
+ 
     const existingUser = await userRepository.findOneBy({ email: email.toLowerCase() });
     if (existingUser) {
       res.status(400).json({ error: 'Email já cadastrado', message: 'Este endereço de email já está em uso.' });
       return;
     }
 
-    // Cria o HASH da senha
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
-    // Cria uma NOVA instância da entidade User
     const newUser = userRepository.create({
       email: email.toLowerCase(),
       password: hashedPassword
-      // outros campos (ex: name) podem ser adicionados aqui
+
     });
 
-    // Salva o novo usuário no banco de dados
     const savedUser = await userRepository.save(newUser);
 
-    // Cria a resposta sem a senha hashada
     const responsePayload: RegisterResponse = {
       message: 'Usuário registrado com sucesso!',
       user: {
@@ -57,7 +48,6 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
   } catch (error: any) {
     console.error('Erro no registro de usuário:', error);
-    // Trata erro específico de violação de constraint (ex: UNIQUE do email, caso findOneBy falhe por concorrência)
      if (error instanceof QueryFailedError && error.message.includes('UNIQUE constraint')) {
         res.status(400).json({ error: 'Email já cadastrado', message: 'Este endereço de email já está em uso (concorrência).' });
         return;
@@ -81,8 +71,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const { email, password }: LoginRequest = req.body;
     if (!email || !password) { /* ... (validação) */ return; }
 
-    // Encontra o usuário pelo email usando o repositório (case-insensitive se o DB collation for)
-    // O ideal é buscar sempre em minúsculas
+
     const user = await userRepository.findOneBy({ email: email.toLowerCase() });
 
     // Se o usuário não existe
@@ -91,7 +80,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Compara a senha enviada com o HASH armazenado
+        // Compara a senha enviada com o HASH armazenado
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     // Se a senha não bate

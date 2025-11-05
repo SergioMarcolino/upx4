@@ -1,7 +1,6 @@
-// Em src/app/interfaces/sales-response.ts
-import { SaleResponse } from "./sale-response"; // Importa a interface de venda individual
+import { SaleResponse } from "./sale-response"; 
 
-export interface ISalesResponse { // Resposta da API GET /api/sales
+export interface ISalesResponse { 
   message: string;
-  data: SaleResponse[]; // Array de vendas
+  data: SaleResponse[]; 
 }

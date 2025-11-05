@@ -1,4 +1,3 @@
-// Em src/app/services/supplier.ts
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
@@ -7,8 +6,6 @@ import { map, catchError } from 'rxjs/operators';
 import { ISupplierResponse } from '../interfaces/supplier-response';
 import { ISuppliersResponse } from '../interfaces/suppliers-response';
 import { ISupplierRequest } from '../interfaces/supplier-request';
-// Não precisa mais do UserAuthService aqui
-// import { UserAuthService } from './user-auth.ts'; 
 
 @Injectable({ providedIn: 'root' })
 export class SupplierService {
