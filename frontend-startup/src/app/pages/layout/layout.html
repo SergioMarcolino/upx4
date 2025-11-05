@@ -1,0 +1,15 @@
+<app-header  (logoutClick)="onLogoutClicked()"></app-header>
+
+<router-outlet />
+
+<app-confirm-modal
+  [(isOpen)]="isLogoutModalOpen"
+  title="Confirmar Logout"
+  message="Você tem certeza que deseja sair do sistema?"
+  confirmText="Sair"
+  cancelText="Cancelar"
+  theme="danger"
+  (confirm)="handleLogoutConfirm()"
+  (cancel)="handleLogoutCancel()"
+>
+</app-confirm-modal>
