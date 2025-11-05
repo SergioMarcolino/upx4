@@ -3,7 +3,6 @@ import { CommonModule, NgClass, DatePipe, DecimalPipe } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormControl } from '@angular/forms'; 
 
-// Seus serviços e interfaces
 import { ProductService } from '../../services/product'; 
 import { IProductResponse } from '../../interfaces/product-response'; 
 import { SupplierService } from '../../services/supplier'; 
@@ -36,6 +35,7 @@ export class ProductsComponent implements OnInit {
   private readonly fb = inject(FormBuilder); 
   private readonly productService = inject(ProductService); 
   private readonly supplierService = inject(SupplierService); 
+  // REMOVIDO categoryService
   private readonly router = inject(Router);
   private readonly renderer = inject(Renderer2); 
   private readonly reportService = inject(ReportService);
@@ -45,6 +45,7 @@ export class ProductsComponent implements OnInit {
   
   // Observables para dados e estados
   public suppliers$: Observable<ISupplierResponse[]>;
+  // REMOVIDO categories$
   private allProducts$: Observable<IProductResponse[]>;
   public filteredProducts$: Observable<IProductResponse[]>;
   public suppliers: ISupplierResponse[] = [];
@@ -53,6 +54,14 @@ export class ProductsComponent implements OnInit {
   // Controles de Filtro
   public searchTerm = new FormControl('');
   public supplierFilter = new FormControl<number | null>(null);
+
+  // ADICIONADA: Lista de categorias fixas
+  public categories: { value: string, name: string }[] = [
+    { value: 'eletronicos', name: 'Eletrônicos' },
+    { value: 'movel', name: 'Móvel' },
+    { value: 'vestuario', name: 'Vestuário' }
+    // Adicione mais categorias aqui se precisar
+  ];
   
   // --- Estado para Modal de Edição ---
   public isEditModalOpen = false;
@@ -64,7 +73,7 @@ export class ProductsComponent implements OnInit {
 
   // --- Estado para Modal de Relatório ---
   public isReportModalOpen = false;
-  public isReportModalClosing = false; // Flag de animação de saída
+  public isReportModalClosing = false;
   public reportForm: FormGroup;
   public reportErrorMessage: string | null = null;
   public isGeneratingReport = false;
@@ -82,6 +91,8 @@ export class ProductsComponent implements OnInit {
         return of([] as ISupplierResponse[]); 
       })
     );
+
+    // REMOVIDO: Carregamento de categories$
 
     this.allProducts$ = this.refreshTrigger$.pipe(
       switchMap(() => {
@@ -126,6 +137,7 @@ export class ProductsComponent implements OnInit {
     this.editProductForm = this.fb.group({
       title: ['', [Validators.required]],
       category: ['', [Validators.required]],
+      status: ['', [Validators.required]],
       purchase_price: [null, [Validators.required, Validators.min(0.01)]],
       sale_price: [null, [Validators.required, Validators.min(0.01)]],
       supplierId: [null, [Validators.required]],
@@ -177,7 +189,7 @@ export class ProductsComponent implements OnInit {
   openEditModal(product: IProductResponse): void {
   	this.editingProduct = product;
     this.editProductForm.patchValue(product);
-  	this.isClosing = false; 
+  	this.isClosing = false;
     this.isEditModalOpen = true; 
   	this.apiEditErrorMessage = null; 
   	this.renderer.addClass(document.body, 'modal-open'); 
@@ -225,7 +237,7 @@ export class ProductsComponent implements OnInit {
       this.renderer.removeClass(document.body, 'modal-open');
       this.editProductForm.reset();
       this.isSaving = false;
-    }, 300); 
+    }, 300);
   }
   
   // --- Função CRUD (Delete) ---
@@ -247,10 +259,10 @@ export class ProductsComponent implements OnInit {
   	}
   }
 
-  // --- Funções do Modal de Relatório (com animação de saída) ---
+  // --- Funções do Modal de Relatório ---
 
   openReportModal(): void {
-    this.isReportModalClosing = false; // Reseta a flag de saída
+    this.isReportModalClosing = false;
   	this.isReportModalOpen = true;
   	this.reportErrorMessage = null;
   	this.renderer.addClass(document.body, 'modal-open');
@@ -262,15 +274,15 @@ export class ProductsComponent implements OnInit {
   }
 
   closeReportModal(): void {
-    if (this.isReportModalClosing) return; // Previne cliques múltiplos
-    this.isReportModalClosing = true; // Inicia a animação de saída
+    if (this.isReportModalClosing) return;
+    this.isReportModalClosing = true;
 
     setTimeout(() => {
     	this.isReportModalOpen = false;
-      this.isReportModalClosing = false; // Reseta a flag
-    	this.isGeneratingReport = false; // Garante que reseta o botão
+      this.isReportModalClosing = false;
+    	this.isGeneratingReport = false; 
     	this.renderer.removeClass(document.body, 'modal-open');
-    }, 300); // 300ms = tempo da animação
+    }, 300);
   }
 
   onGenerateReport(): void {
@@ -299,7 +311,7 @@ export class ProductsComponent implements OnInit {
   		document.body.removeChild(link);
   		
   		this.isGeneratingReport = false;
-  		this.closeReportModal(); // Fecha o modal com a nova animação
+  		this.closeReportModal();
   	  },
   	  error: (err: Error) => {
   		console.error('Erro ao gerar relatório:', err);
