@@ -38,6 +38,12 @@ export class ProductService {
     );
   }
 
+  listActiveProducts(): Observable<IProductResponse[]> {
+  return this.listProducts().pipe(
+    map(products => products.filter(p => p.status === 'anunciado'))
+  );
+}
+
   getProductById(id: number): Observable<IProductResponse> {
     // Não precisa de headers manuais
     return this._httpClient.get<{ message: string, data: IProductResponse }>(`${this._apiUrl}/${id}`).pipe(

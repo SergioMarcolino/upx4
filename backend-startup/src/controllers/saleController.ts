@@ -1,57 +1,94 @@
-import { Request, Response } from 'express';
-import { SaleService } from '../services/saleService'; 
-import { SaleRequestDTO } from '../types'; 
-import { Sale } from '../entities/Sale'; 
-import { AppDataSource } from '../data-source'; 
+import { AppDataSource } from '../data-source';
+import { Sale } from '../entities/Sale';
+import { SaleItem } from '../entities/SaleItem';
+import { Product } from '../entities/Product'; // Importe a entidade Product
+import { SaleRequestDTO } from '../types';
 
-// Instancia o serviço UMA VEZ
-const saleService = new SaleService();
+export class SaleService {
 
-// ==============================================
-// POST: Criar uma Nova Venda (/api/sales)
-// ==============================================
-export const createSaleController = async (req: Request, res: Response): Promise<void> => { // async/Promise
-  try {
-    const saleRequest: SaleRequestDTO = req.body;
+  public async createSale(saleRequest: SaleRequestDTO): Promise<Sale> {
+    
+    return AppDataSource.manager.transaction(async (transactionalEntityManager) => {
+      
+      const productRepo = transactionalEntityManager.getRepository(Product);
+      const saleRepo = transactionalEntityManager.getRepository(Sale);
+      const saleItemRepo = transactionalEntityManager.getRepository(SaleItem);
 
-    // Validação básica do corpo
-    if (!saleRequest || !Array.isArray(saleRequest.items) || saleRequest.items.length === 0) {
-      res.status(400).json({ message: 'Requisição de venda inválida. "items" é obrigatório.' });
-      return;
-    }
+      let calculatedTotal = 0; // 1. Variável para calcular o total
 
-    // Chama o método assíncrono do serviço refatorado
-    const newSale = await saleService.createSale(saleRequest);
+      // =================================================================
+      // ETAPA 1: VERIFICAR PRODUTOS E CALCULAR TOTAL
+      // =================================================================
+      for (const item of saleRequest.items) {
+        
+        const product = await productRepo.findOne({ 
+          where: { id: item.productId } 
+        });
 
-    // Retorna a venda básica retornada pelo save:
-    res.status(201).json(newSale);
+        if (!product) {
+          throw new Error(`Produto com ID ${item.productId} não encontrado.`);
+        }
 
+        // Validação de Status
+        if (product.status === 'desativado') {
+          throw new Error(`O produto "${product.title}" está desativado e não pode ser vendido.`);
+        }
 
-  } catch (error: any) {
-    // Captura erros lançados pelo saleService
-    console.error('Falha na API /api/sales [POST]:', error.message);
-    res.status(400).json({ message: error.message });
-  }
-};
+        // Validação de Estoque
+        if (product.quantity < item.quantity) {
+          throw new Error(`Estoque insuficiente para "${product.title}". Disponível: ${product.quantity}, Pedido: ${item.quantity}.`);
+        }
+        
+        // 2. CALCULA O TOTAL AQUI (no backend)
+        // Converte para Number para garantir a multiplicação correta
+        const itemTotal = Number(product.sale_price) * Number(item.quantity);
+        calculatedTotal += itemTotal;
+      }
 
+      // =================================================================
+      // ETAPA 2: CRIAR A VENDA
+      // =================================================================
+      
+      const newSale = new Sale();
+      
+      // 3. ATRIBUI O TOTAL CALCULADO
+      // Esta linha substitui a que estava dando erro
+      newSale.totalAmount = calculatedTotal; 
+      
+      // Salva a venda principal para obter um ID
+      const savedSale = await saleRepo.save(newSale);
 
-// ==============================================
-// GET: Listar Todas as Vendas (/api/sales)
-// ==============================================
-export const getSales = async (req: Request, res: Response): Promise<void> => { // async/Promise
-  try {
-    // Usa o repositório do TypeORM para buscar as vendas
-    const saleRepository = AppDataSource.getRepository(Sale); // Agora AppDataSource é conhecido
-    // Busca todas as vendas, incluindo os itens e os produtos dentro dos itens
-    const salesData = await saleRepository.find({ relations: ['items', 'items.product'] });
+      // =================================================================
+      // ETAPA 3: ATUALIZAR O ESTOQUE E SALVAR OS ITENS
+      // =================================================================
+      
+      for (const item of saleRequest.items) {
+        const product = await productRepo.findOneByOrFail({ id: item.productId });
+        
+        const newSaleItem = new SaleItem();
+        newSaleItem.product = product;
+        newSaleItem.sale = savedSale;
+        newSaleItem.quantitySold = item.quantity;
+        newSaleItem.pricePerUnit = product.sale_price;
+        newSaleItem.costPerUnit = product.purchase_price;
+        
+        await saleItemRepo.save(newSaleItem);
+        
+        // Atualiza (decrementa) o estoque do produto
+        await productRepo.decrement(
+          { id: item.productId },
+          'quantity',
+          item.quantity
+        );
+      }
 
-    res.status(200).json({
-      message: 'Vendas listadas com sucesso',
-      data: salesData
+      // Busca a venda completa com as relações para retornar
+      const completeSale = await saleRepo.findOne({
+        where: { id: savedSale.id },
+        relations: ['items', 'items.product']
+      });
+
+      return completeSale!;
     });
-
-  } catch (error: any) {
-    console.error('Falha na API /api/sales [GET]:', error);
-    res.status(500).json({ error: 'Erro interno do servidor', message: 'Não foi possível listar as vendas.' });
   }
-};
+}

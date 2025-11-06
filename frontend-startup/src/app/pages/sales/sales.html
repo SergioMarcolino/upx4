@@ -1,127 +1,186 @@
-<div class="w-full py-7 px-4 sm:px-14 pt-20 bg-gray-50 min-h-screen">
-  
-  <div class="max-w-6xl mx-auto">
+<div class="w-full py-7 px-4 sm:px-14 pt-6 bg-gray-50 min-h-screen">
+  
+    <div class="max-w-3xl mx-auto">
+    
+    <div class="mb-1">
+      <h1 class="text-3xl font-semibold text-gray-900">Tela de Vendas (PDV)</h1>
+      <p class="text-base text-gray-600 mt-1">Adicione produtos ao carrinho para realizar uma nova venda.</p>
+    </div>
+
+        @if (successMessage) {
+      <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-6" role="alert">
+        <span class="block sm:inline">{{ successMessage }}</span>
+      </div>
+    }
+    @if (errorMessage) {
+      <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
+        <span class="block sm:inline">{{ errorMessage }}</span>
+      </div>
+    }
+    @if (isLoading) {
+      <div class="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative mb-6" role="alert">
+        <span class="block sm:inline">Processando...</span>
+      </div>
+    }
+
+            <div class="bg-white rounded-xl shadow-lg border border-gray-100">
+      
+      <div class="p-6 sm:p-8 border-b border-gray-100 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-gray-800">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c.121 0 .239.04.337.111M2.85 5.625l2.632 9.75M16.5 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm-10.875 0a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+          </svg>
+          <h3 class="text-xl font-semibold text-gray-800">Venda Atual</h3>
+        </div>
+        <button 
+          (click)="openProductModal()" 
+          [disabled]="isLoading"
+          class="flex items-center px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition duration-200 shadow-md cursor-pointer shrink-0 disabled:opacity-50">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          Adicionar Produto
+        </button>
+      </div>
+
+            <div class="p-6 sm:p-8 flex flex-col gap-4">
+        @for (item of cart; track item.productId) {
+          <div class="flex justify-between items-center p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div>
+              <span class="font-medium text-gray-800">{{ getProductTitle(item.productId) }}</span>
+              <p class="text-sm text-gray-600">Quantidade: <span class="font-bold">{{ item.quantity }}</span></p>
+            </div>
+            <button (click)="removeFromCart(item.productId)" class="text-red-500 hover:text-red-700 font-bold text-2xl transition duration-150">
+              &times;
+            </button>
+          </div>
+        } @empty {
+          <p class="text-gray-500 text-center py-4">O carrinho está vazio. Clique em "Adicionar Produto" para começar.</p>
+        }
+      </div>
+
+            @if (cart.length > 0) {
+        <div class="p-6 sm:p-8 border-t border-gray-100 bg-gray-50 rounded-b-xl flex flex-col gap-4">
+          <div class="flex justify-between items-center text-xl font-semibold text-gray-900">
+            <span>Total:</span>
+            <span>{{ getCartTotal() | currency:'BRL':'symbol' }}</span>
+          </div>
+          
+          <button 
+            (click)="finalizeSale()" 
+            [disabled]="isLoading"
+            class="w-full flex justify-center items-center p-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition duration-200 disabled:opacity-50"
+          >
+            @if(isLoading) {
+              <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Finalizando...
+            } @else {
+              Finalizar Venda
+            }
+          </button>
+        </div>
+      }
+
+    </div>       
+    </div> 
+  </div> 
+
+
+
+@if (isProductModalOpen) {
+  <div 
+    class="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity duration-300 ease-out"
+    (click)="closeProductModal()"
+    [class.animate-fade-in]="!isProductModalClosing"
+    [class.animate-fade-out]="isProductModalClosing">
     
-    <div class="mb-8">
-      <h1 class="text-3xl font-semibold text-gray-900">Tela de Vendas (PDV)</h1>
-      <p class="text-base text-gray-600 mt-1">Realize uma nova venda e dê baixa no estoque.</p>
+    <div 
+      class="bg-white rounded-xl shadow-2xl border border-gray-100 w-full max-w-4xl max-h-[80vh] flex flex-col
+             transform transition-all duration-300 ease-out m-4"
+      (click)="$event.stopPropagation()"
+      [class.animate-slide-up-modal]="!isProductModalClosing"
+      [class.animate-slide-down-modal]="isProductModalClosing">
+      
+      <div class="p-6 sm:p-8 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4 shrink-0">
+        <h3 class="text-xl font-semibold text-gray-800">Adicionar Produtos</h3>
+        
+        <input
+          type="text"
+          [formControl]="productSearchTerm"
+          placeholder="Buscar por nome..."
+          class="w-full sm:w-1/2 border border-gray-300 rounded-lg p-3 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out"
+        />
+      </div>
+
+            <div class="p-6 sm:p-8 flex flex-col gap-4 overflow-y-auto">
+        
+        @if (isLoading) {
+          <p class="text-gray-500 text-center py-4">Carregando produtos...</p>
+        }
+
+        @for (product of filteredProducts; track product.id) {
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 border border-gray-200 rounded-lg">
+            
+                        <div>
+              <strong class="text-gray-800">{{ product.title }}</strong>
+              <div class="mt-1 flex items-center gap-3 text-sm">
+                <div>
+                  <span class="text-gray-600">Estoque: </span>
+                  <span class="font-medium" [class.text-red-600]="product.quantity <= 5" [class.text-gray-800]="product.quantity > 5">
+                    {{ product.quantity }}
+                  </span>
+                </div>
+                <div class="border-l border-gray-300 h-4"></div>
+                <div>
+                  <span class="text-gray-600">Preço: </span>
+                  <span class="font-medium text-emerald-600">
+                    {{ product.sale_price | currency:'BRL':'symbol' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+                        <div class="flex items-center gap-3 shrink-0">
+              <input
+                type="number"
+                [(ngModel)]="product.quantityToSell"
+                min="1"
+                [max]="product.quantity"
+                class="w-20 border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150"
+t              />
+              <button 
+                (click)="addToCart(product)" 
+                [disabled]="product.quantityToSell <= 0 || product.quantity <= 0"
+                class="p-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition duration-200 disabled:opacity-50"
+              >
+                Adicionar
+              </button>
+            </div>
+          </div>
+        } @empty {
+          <p class="text-gray-500 text-center py-4">
+            @if(isSearching) {
+              Buscando...
+            } @else {
+              @if (productSearchTerm.value) {
+                Nenhum produto ativo encontrado para "{{ productSearchTerm.value }}".
+              } @else {
+                Nenhum produto ativo encontrado no estoque.
+              }
+            }
+          </p>
+        }
+      </div>
+
+      <div class="flex justify-end gap-3 mt-auto p-5 border-t border-gray-100 bg-gray-50 shrink-0">
+        <button type="button" (click)="closeProductModal()" class="px-6 py-2 rounded-lg border border-gray-300 text-gray-700 text-sm font-semibold hover:bg-gray-100 transition-colors duration-200 ease-in-out">
+          Fechar
+        </button>
+      </div>
+
     </div>
-
-    @if (successMessage) {
-      <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-6" role="alert">
-        <span class="block sm:inline">{{ successMessage }}</span>
-      </div>
-    }
-    @if (errorMessage) {
-      <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
-        <span class="block sm:inline">{{ errorMessage }}</span>
-      </div>
-    }
-    @if (isLoading) {
-      <div class="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative mb-6" role="alert">
-        <span class="block sm:inline">Processando...</span>
-      </div>
-    }
-
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      
-      <div class="lg:col-span-2">
-        <div class="bg-white rounded-xl shadow-lg border border-gray-100">
-          
-          <div class="p-6 sm:p-8 border-b border-gray-100 flex items-center gap-3">
-            
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-gray-800">
-              <path stroke-linecap="round" stroke-linejoin="round" d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
-            </svg>
-            
-            <h3 class="text-xl font-semibold text-gray-800">Produtos Disponíveis</h3>
-          </div>
-          
-          <div class="p-6 sm:p-8 flex flex-col gap-4 max-h-[65vh] overflow-y-auto">
-            
-            @for (product of allProducts; track product.id) {
-              <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 border border-gray-200 rounded-lg">
-                
-                <div>
-                  <strong class="text-gray-800">{{ product.title }}</strong>
-                  <p class="text-sm text-gray-600">
-                    Estoque: <span class="font-medium" [class.text-red-600]="product.quantity <= 0">{{ product.quantity }}</span> 
-                    | Preço: <span class="font-medium text-emerald-600">R$ {{ product.sale_price | number:'1.2-2' }}</span>
-                  </p>
-                </div>
-                
-                <div class="flex items-center gap-3 shrink-0">
-                  <input
-                    type="number"
-                    [(ngModel)]="product.quantityToSell"
-                    min="1"
-                    [max]="product.quantity"
-                    class="w-20 border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150"
-                  />
-                  <button 
-                    (click)="addToCart(product)" 
-                    [disabled]="product.quantityToSell <= 0 || product.quantity <= 0"
-                    class="p-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition duration-200 disabled:opacity-50"
-                  >
-                    Adicionar
-                  </button>
-                </div>
-              </div>
-            } @empty {
-              <p class="text-gray-500">Nenhum produto encontrado no estoque.</p>
-            }
-            </div>
-        </div>
-      </div>
-      
-      <div class="lg:col-span-1">
-        <div class="bg-white rounded-xl shadow-lg border border-gray-100 h-fit sticky top-20">
-          
-          <div class="p-6 sm:p-8 border-b border-gray-100 flex items-center gap-3">
-            
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-gray-800">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c.121 0 .239.04.337.111M2.85 5.625l2.632 9.75M16.5 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm-10.875 0a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-            </svg>
-            
-            <h3 class="text-xl font-semibold text-gray-800">Venda Atual</h3>
-          </div>
-
-          <div class="p-6 sm:p-8 flex flex-col gap-4">
-            @for (item of cart; track item.productId) {
-              <div class="flex justify-between items-center">
-                <div>
-                  <span class="font-medium text-gray-800">{{ getProductTitle(item.productId) }}</span>
-                  <p class="text-sm text-gray-600">Quantidade: {{ item.quantity }}</p>
-                </div>
-                <button (click)="removeFromCart(item.productId)" class="text-red-500 hover:text-red-700 font-bold text-2xl transition duration-150">
-                  &times;
-                </button>
-              </div>
-            } @empty {
-              <p class="text-gray-500 text-center py-4">O carrinho está vazio.</p>
-            }
-          </div>
-
-          @if (cart.length > 0) {
-            <div class="p-6 sm:p-8 border-t border-gray-100 flex flex-col gap-4">
-              <div class="flex justify-between items-center text-xl font-semibold text-gray-900">
-                <span>Total:</span>
-                <span>R$ {{ getCartTotal() | number:'1.2-2' }}</span>
-              </div>
-              
-              <button 
-                (click)="finalizeSale()" 
-                [disabled]="isLoading"
-                class="w-full flex justify-center p-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition duration-200 disabled:opacity-50"
-              >
-                Finalizar Venda
-              </button>
-            </div>
-          }
-
-        </div>
-      </div>
-      
-    </div> 
-  </div> 
-</div>
+  </div>
+}

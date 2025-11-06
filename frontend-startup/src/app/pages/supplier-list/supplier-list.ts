@@ -1,20 +1,24 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router'; 
-import { forkJoin, Observable, of } from 'rxjs';
-import { catchError, finalize, map } from 'rxjs/operators';
+import { Component, inject, OnInit, Renderer2 } from '@angular/core';
+import { CommonModule, DecimalPipe } from '@angular/common';
+import { Router, RouterModule } from '@angular/router';
+import { Observable, forkJoin, of } from 'rxjs';
+import { catchError, finalize } from 'rxjs/operators';
 
-// Serviços e Interfaces
+// Importe seus serviços e interfaces
 import { SupplierService } from '../../services/supplier';
 import { ProductService } from '../../services/product';
 import { ISupplierResponse } from '../../interfaces/supplier-response';
 import { IProductResponse } from '../../interfaces/product-response';
 
 @Component({
-  selector: 'app-supplier-list',
+  selector: 'app-supplier-list', 
   standalone: true,
-  imports: [CommonModule, RouterModule], 
-  templateUrl: './supplier-list.html',
+  imports: [
+    CommonModule, 
+    RouterModule,
+    DecimalPipe 
+  ],
+  templateUrl: './supplier-list.html', 
   styleUrls: ['./supplier-list.css']
 })
 export class SupplierListComponent implements OnInit {
@@ -22,53 +26,67 @@ export class SupplierListComponent implements OnInit {
   // Injeções
   private supplierService = inject(SupplierService);
   private productService = inject(ProductService);
+  private renderer = inject(Renderer2);
 
-  // Estado
-  suppliers: ISupplierResponse[] = [];
-  products: IProductResponse[] = [];
+  // Estado da UI
   isLoading = true;
   errorMessage: string | null = null;
+  
+
+  suppliers: ISupplierResponse[] = [];
+  products: IProductResponse[] = [];
+
+  public isModalOpen = false;
+  public isModalClosing = false;
+  public selectedSupplier: ISupplierResponse | null = null;
 
   ngOnInit(): void {
     this.loadData();
   }
 
-  /**
-   * Carrega fornecedores e produtos em paralelo.
-   */
   loadData(): void {
     this.isLoading = true;
     this.errorMessage = null;
 
-    // forkJoin executa os Observables em paralelo e emite quando TODOS completarem
     forkJoin({
-      suppliers: this.supplierService.listSuppliers().pipe(catchError(() => of([] as ISupplierResponse[]))), 
-      products: this.productService.listProducts().pipe(catchError(() => of([] as IProductResponse[])))    
-    })
-    .pipe(finalize(() => this.isLoading = false)) 
-    .subscribe({
-      next: (results) => {
-        this.suppliers = results.suppliers;
-        this.products = results.products;
-        
-        if (this.suppliers.length === 0 && this.products.length > 0) {
-            this.errorMessage = "Fornecedores carregados, mas falha ao carregar produtos associados.";
-        } else if (this.suppliers.length > 0 && this.products.length === 0 ) {
-             this.errorMessage = "Produtos carregados, mas falha ao carregar fornecedores associados.";
-        } else if (this.suppliers.length === 0 && this.products.length === 0 ) {
-
-        }
-
-      },
-      error: (err) => {
-        console.error("Erro geral ao carregar dados:", err);
-        this.errorMessage = "Erro ao carregar dados. Tente novamente.";
-      }
+      suppliers: this.supplierService.listSuppliers(),
+      products: this.productService.listProducts() 
+    }).pipe(
+      catchError((err: Error) => {
+        this.errorMessage = `Erro ao carregar dados: ${err.message}`;
+        return of({ suppliers: [], products: [] }); 
+      }),
+      finalize(() => {
+        this.isLoading = false;
+      })
+    ).subscribe(response => {
+      this.suppliers = response.suppliers;
+      this.products = response.products;
     });
   }
 
 
   getProductsForSupplier(supplierId: number): IProductResponse[] {
-    return this.products.filter(product => product.supplierId === supplierId);
+    return this.products.filter(p => p.supplierId === supplierId);
+  }
+
+
+  openSupplierModal(supplier: ISupplierResponse): void {
+    this.selectedSupplier = supplier;
+    this.isModalClosing = false;
+    this.isModalOpen = true;
+    this.renderer.addClass(document.body, 'modal-open');
+  }
+
+  closeSupplierModal(): void {
+    if (this.isModalClosing) return;
+    this.isModalClosing = true;
+
+    setTimeout(() => {
+      this.isModalOpen = false;
+      this.isModalClosing = false;
+      this.selectedSupplier = null;
+      this.renderer.removeClass(document.body, 'modal-open');
+    }, 300); 
   }
 }
