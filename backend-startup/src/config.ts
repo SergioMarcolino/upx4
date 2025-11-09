@@ -9,7 +9,7 @@ const DB_PASSWORD = 'sergio';
 
 export const sqlConfig: MSSQLConfig = {
 
-  server: 'DESKTOP-RNV25CK', 
+  server: 'DESKTOP-8OAV9DP', 
   database: 'FluxaDB',        
   port: 1433,                 
 
